@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(latexmk -pdf -interaction=nonstopmode document.tex)",
+      "Bash(pdflatex -interaction=nonstopmode document.tex)"
+    ]
+  }
+}
