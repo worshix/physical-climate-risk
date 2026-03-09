@@ -323,7 +323,7 @@ This study focuses on Microfinance Institutions (MFIs) operating within Zimbabwe
 
 \subsection{Temporal Scope}
 
-The analysis covers historical credit transition data and climate indices spanning a minimum of 10 years to ensure adequate representation of both normal and drought regimes.
+The analysis covers historical credit transition data and climate indices spanning 10 years (2014Q1 to 2024Q4), ensuring adequate representation of both normal and drought regimes across the contemporary period of Zimbabwe's agricultural and microfinance development.
 
 \subsection{Modeling Framework}
 
@@ -759,7 +759,7 @@ The framework estimates regime-switching probabilities as a function of $\gamma$
 The empirical analysis draws on two primary data streams:
 
 \begin{enumerate}[noitemsep]
-    \item \textbf{Credit Transition Data:} Quarterly borrower-level credit observations spanning 2001Q1 to 2025Q4 were sourced from regulatory returns filed by licensed Microfinance Institutions with the Reserve Bank of Zimbabwe (RBZ). The dataset covers six provinces---Mashonaland Central, Mashonaland East, Manicaland, Masvingo, Matabeleland South, and Midlands---representing the principal agricultural lending zones. Each observation records the borrower identifier, loan identifier, branch and district, internal credit rating (1--5 scale), outstanding principal balance, and default status.
+    \item \textbf{Credit Transition Data:} Quarterly borrower-level credit observations spanning 2014Q1 to 2024Q4 were sourced from regulatory returns filed by licensed Microfinance Institutions with the Reserve Bank of Zimbabwe (RBZ). The dataset covers six provinces---Mashonaland Central, Mashonaland East, Manicaland, Masvingo, Matabeleland South, and Midlands---representing the principal agricultural lending zones. Each observation records the borrower identifier, loan identifier, branch and district, internal credit rating (1--5 scale), outstanding principal balance, and default status.
     \item \textbf{Climate Data:} The Standardized Precipitation Evapotranspiration Index (SPEI) at quarterly resolution was obtained from the Global SPEI Database (Vicente-Serrano, Beguer\'ia and L\'opez-Moreno, 2010), cross-referenced with precipitation and temperature records from the Zimbabwe Meteorological Services Department (MSD). District-level SPEI values were computed for each province to align with the spatial granularity of the credit data.
 \end{enumerate}
 
@@ -806,7 +806,7 @@ Let $i_{n,t}$ denote the rating of borrower $n$ at quarter $t$. For each borrowe
 \begin{enumerate}[noitemsep]
     \item Align all observations to calendar quarter ends (Mar 31, Jun 30, Sep 30, Dec 31).
     \item Handle missing quarters by interpolation only if the gap is exactly one quarter; otherwise, treat as separate spells.
-    \item Convert all currency amounts to a common real unit (e.g., constant 2025 USD using CPI deflator).
+    \item Convert all currency amounts to a common real unit (e.g., constant 2024 USD using CPI deflator).
     \item Exclude observations with missing critical fields (rating, gamma, loan\_amount).
 \end{enumerate}
 
