@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(latexmk -pdf -interaction=nonstopmode document.tex)",
-      "Bash(pdflatex -interaction=nonstopmode document.tex)"
+      "Bash(pdflatex -interaction=nonstopmode document.tex)",
+      "Bash(mkdir -p src data outputs/csv outputs/figures)",
+      "Bash(cp ../document/jay_dataset.csv data/)",
+      "Bash(touch src/__init__.py)",
+      "Bash(uv add streamlit pandas numpy scipy scikit-learn matplotlib)",
+      "Bash(uv run python -c \":*)"
     ]
   }
 }

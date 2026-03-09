@@ -1,0 +1,245 @@
+You are helping me build a Python Streamlit MVP for a financial risk modeling prototype.
+
+Important constraints:
+
+• The project already has a folder with a **uv environment** configured.
+• Do NOT create pip or requirements.txt workflows.
+• Use **uv for dependency management**.
+• Assume a dataset already exists in `/data/jay_dataset.csv`.
+• The application must be modular and easy to expand.
+• Focus on clean architecture, readable code, and comments.
+
+The goal of this prototype is to model **credit rating transitions under drought conditions** and estimate expected credit losses (ECL).
+
+---
+
+# STEP 1 — Project Structure
+
+Create the following project structure:
+
+project/
+│
+├─ app.py
+├─ config.py
+│
+├─ data/
+│   └─ jay_dataset.csv
+│
+├─ src/
+│   ├─ ingestion.py
+│   ├─ transitions.py
+│   ├─ estimation.py
+│   ├─ svdm.py
+│   ├─ forecasting.py
+│   ├─ validation.py
+│   └─ plots.py
+│
+└─ outputs/
+├─ csv/
+└─ figures/
+
+Explain what each file is responsible for.
+
+---
+
+# STEP 2 — Dependencies
+
+Install only the following dependencies using uv:
+
+streamlit
+pandas
+numpy
+scipy
+scikit-learn
+matplotlib
+
+Provide the exact uv commands required.
+
+---
+
+# STEP 3 — Data Ingestion Module
+
+Create `src/ingestion.py` with functions:
+
+load_dataset(path)
+validate_dataset(df)
+
+Validation should check that the dataset includes columns like:
+
+borrower_id
+loan_id
+rating
+obs_date
+district
+gamma
+default_flag
+
+Return a cleaned pandas dataframe.
+
+---
+
+# STEP 4 — Transition Extraction
+
+Create `src/transitions.py`.
+
+Functions:
+
+extract_rating_transitions(df)
+
+Logic:
+
+• Sort by borrower and time
+• Compute transitions from rating_t → rating_t+1
+• Associate each transition with gamma_t
+• Return a transition dataframe.
+
+---
+
+# STEP 5 — Two-Regime Model
+
+Create `src/estimation.py`.
+
+Implement the regime-switching migration model:
+
+P(γ) = ω(γ) * M_stress + (1 - ω(γ)) * M_normal
+
+Where
+
+ω(γ) = 1 / (1 + exp(-k(γ - γ0)))
+
+Tasks:
+
+• Estimate transition matrices
+• Use softmax row normalization
+• Use scipy.optimize to maximize likelihood
+• Return:
+
+M_normal
+M_stress
+k
+gamma0
+
+Include comments explaining each step.
+
+---
+
+# STEP 6 — SVDM Metric
+
+Create `src/svdm.py`.
+
+Function:
+
+compute_svdm(M_normal, M_stress)
+
+Steps:
+
+• compute singular values of both matrices
+• calculate divergence metric
+• return the score.
+
+---
+
+# STEP 7 — ECL Forecasting
+
+Create `src/forecasting.py`.
+
+Function:
+
+compute_ecl(pd, lgd, ead)
+
+Where
+
+ECL = PD × LGD × EAD
+
+Add ability to simulate multiple drought scenarios by modifying gamma.
+
+Return a dataframe with scenario ECL values.
+
+---
+
+# STEP 8 — Backtesting
+
+Create `src/validation.py`.
+
+Functions:
+
+calculate_auc
+calculate_brier_score
+
+Use scikit-learn metrics.
+
+---
+
+# STEP 9 — Visualization
+
+Create `src/plots.py`.
+
+Functions should generate:
+
+• migration matrix heatmaps
+• regime weight vs gamma plot
+• ECL scenario bar chart
+• ROC curve
+
+Return matplotlib figures so Streamlit can render them.
+
+---
+
+# STEP 10 — Streamlit UI
+
+Create `app.py`.
+
+The Streamlit app should include these pages in the sidebar:
+
+1️⃣ Dataset Overview
+2️⃣ Rating Transition Analysis
+3️⃣ Regime Model Estimation
+4️⃣ ECL Scenario Simulator
+5️⃣ Backtesting Metrics
+
+UI components should include:
+
+• dataset preview table
+• summary statistics
+• parameter sliders for LGD and EAD
+• scenario selection (normal / drought / severe drought)
+• charts rendered from the plotting module.
+
+The UI should call the modules in `/src`.
+
+---
+
+# STEP 11 — Outputs
+
+Save generated results automatically:
+
+outputs/csv/
+
+migration_matrices.csv
+svdm_results.csv
+ecl_forecasts.csv
+backtesting_metrics.csv
+
+---
+
+# STEP 12 — Code Quality
+
+Requirements:
+
+• modular functions
+• docstrings for each function
+• clear comments for math
+• type hints where possible
+• handle missing data safely.
+
+---
+
+# FINAL TASK
+
+Generate the implementation **file by file**, starting with:
+
+1. project structure
+2. ingestion.py
+3. transitions.py
+
+Stop after each file so I can review before continuing.
