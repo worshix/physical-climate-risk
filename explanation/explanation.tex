@@ -1,0 +1,1074 @@
+%==============================================================================
+% explanation.tex
+% Plain-language guide to the ECL Prototype:
+%   purpose, dataset, how each stage works, what each screen shows,
+%   and how to run the process tests.
+%
+% Compile with:  pdflatex explanation.tex
+%==============================================================================
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[margin=2.5cm,headheight=15pt]{geometry}
+\usepackage{amsmath}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{mdframed}
+
+% ---- Colours ----------------------------------------------------------------
+\definecolor{hitblue}{RGB}{0,70,127}
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{codekw}{RGB}{0,0,180}
+\definecolor{codecomment}{RGB}{80,120,80}
+\definecolor{codestring}{RGB}{180,0,0}
+\definecolor{framebg}{RGB}{230,240,255}
+
+% ---- Section heading style --------------------------------------------------
+\titleformat{\section}{\large\bfseries\color{hitblue}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{hitblue}}{}{0em}{}
+
+% ---- Code listing style -----------------------------------------------------
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestring},
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{hitblue!40},
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  tabsize=4,
+  captionpos=b,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=6pt,
+}
+
+% ---- Callout box ------------------------------------------------------------
+\newmdenv[
+  backgroundcolor=framebg,
+  linecolor=hitblue,
+  linewidth=1pt,
+  leftmargin=0pt,
+  rightmargin=0pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  innertopmargin=8pt,
+  innerbottommargin=8pt,
+]{infobox}
+
+% ---- Header / Footer --------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{hitblue} ECL Prototype --- Process Guide}
+\fancyhead[R]{\small\color{hitblue} HIT, Department of Applied Mathematics}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%==============================================================================
+\begin{document}
+
+%------------------------------------------------------------------------------
+% TITLE
+%------------------------------------------------------------------------------
+\begin{center}
+  {\LARGE\bfseries\color{hitblue}
+    Modelling Physical Climate Risk in IFRS~9 ECL Frameworks}\\[6pt]
+  {\large A Plain-Language Guide to the ECL Prototype}\\[4pt]
+  {\normalsize\itshape
+    Two-Regime Markov-Switching Approach to Credit Migration ---
+    Zimbabwe's Microfinance Sector}\\[10pt]
+  \rule{\linewidth}{0.8pt}\\[4pt]
+  {\small
+    Harare Institute of Technology (HIT) \quad|\quad
+    Department of Applied Mathematics \quad|\quad
+    March 2026}
+\end{center}
+
+\tableofcontents
+\newpage
+
+%==============================================================================
+\section{What Is This Project?}
+%==============================================================================
+
+\subsection{The Problem in Plain English}
+
+Microfinance lenders in Zimbabwe give small loans to people who farm or run
+informal businesses.  When a drought comes, borrowers struggle to repay ---
+their crops fail, their income falls, and they miss payments.  Under the
+international accounting rule IFRS~9, lenders must set aside money
+\emph{before} losses happen (a ``provision'').  The amount set aside is called
+the \textbf{Expected Credit Loss (ECL)}.
+
+The usual way of calculating ECL ignores whether it is drought season or not.
+It uses one fixed set of probabilities for borrowers moving from one credit
+rating to another.  This project builds a smarter model that has \emph{two
+sets} of probabilities --- one for normal weather and one for drought --- and
+switches between them depending on a drought index.
+
+\subsection{Why It Matters}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item If ECL is underestimated during a drought, a lender could run out of
+        capital and collapse.
+  \item If ECL is overestimated every quarter, the lender holds back too much
+        money and cannot lend to the next borrower.
+  \item A climate-aware model gives a fairer, more accurate number.
+\end{itemize}
+
+\subsection{The Answer: A Two-Regime Switching Model}
+
+Think of it like a thermostat that switches between two modes:
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  Condition & Mode & Which matrix is used? \\
+  \midrule
+  Drought (\(\gamma < -1.0\))  & Stress & \(M_{\text{stress}}\) (higher default risk) \\
+  Normal (\(\gamma \geq -1.0\)) & Normal & \(M_{\text{normal}}\) (lower default risk) \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+In reality the model uses a smooth blend of both matrices, not a hard switch,
+so there is no abrupt jump at the threshold.  The blending formula is:
+
+\[
+  P(\gamma) \;=\; \omega(\gamma)\cdot M_{\text{stress}}
+              \;+\; \bigl(1-\omega(\gamma)\bigr)\cdot M_{\text{normal}}
+\]
+
+where \(\omega(\gamma)\) is a number between 0 and 1 that gets closer to 1
+the deeper the drought is.
+
+\newpage
+%==============================================================================
+\section{The Dataset}
+%==============================================================================
+
+\subsection{File Location}
+
+\begin{lstlisting}[language=bash, numbers=none]
+prototype/data/jay_dataset.csv
+\end{lstlisting}
+
+\subsection{What Each Column Means}
+
+\begin{center}
+\begin{tabular}{>{\ttfamily}lp{9.5cm}}
+  \toprule
+  Column & Meaning \\
+  \midrule
+  borrower\_id   & Unique identifier for each borrower (e.g.\ \texttt{MF01234}). \\
+  loan\_id       & Unique identifier for the loan. \\
+  rating         & Credit rating at that point in time.
+                   1~=~default (worst), 5~=~best. \\
+  obs\_date      & The date this observation was recorded
+                   (one record per quarter per borrower). \\
+  district       & The district the borrower lives in. \\
+  gamma          & The SPEI drought index for that period.
+                   Negative means dry; positive means wet.
+                   Below $-1.0$ is considered a drought. \\
+  default\_flag  & 1 if the borrower is in default this quarter, 0 otherwise. \\
+  loan\_amount   & Outstanding loan balance in US dollars. \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Key Numbers in the Dataset}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{6 borrowers}, observed over roughly 10 quarters each.
+  \item \textbf{59 total observations}, producing \textbf{51 valid transitions}
+        (pairs of consecutive quarterly ratings for the same borrower).
+  \item \textbf{31 normal-regime} and \textbf{20 stress-regime} transitions.
+  \item \textbf{5 credit states}: 1 (default/absorbing), 2, 3, 4, 5.
+  \item Drought index $\gamma$ ranges from about $-1.84$ to $+0.84$.
+\end{itemize}
+
+\begin{infobox}
+  \textbf{What is SPEI?}  The Standardised Precipitation
+  Evapotranspiration Index (SPEI) measures how dry or wet conditions are
+  compared with the long-term average.  A value of $0$ is normal; $-1$ means
+  moderately dry; $-2$ means severely dry; $+1$ means unusually wet.
+\end{infobox}
+
+\newpage
+%==============================================================================
+\section{How the System Works --- Stage by Stage}
+%==============================================================================
+
+The prototype is built from five Python modules, each responsible for one
+stage of the pipeline.
+
+\[
+  \text{CSV data}
+  \;\longrightarrow\; \underbrace{\text{Stage 1}}_{\texttt{ingestion}}
+  \;\longrightarrow\; \underbrace{\text{Stage 2}}_{\texttt{transitions}}
+  \;\longrightarrow\; \underbrace{\text{Stage 3}}_{\texttt{estimation}}
+  \;\longrightarrow\; \underbrace{\text{Stage 4}}_{\texttt{forecasting}}
+  \;\longrightarrow\; \underbrace{\text{Stage 5}}_{\texttt{validation}}
+\]
+
+%------------------------------------------------------------------------------
+\subsection{Stage 1 --- Data Loading (\texttt{src/ingestion.py})}
+%------------------------------------------------------------------------------
+
+\textbf{What it does in plain English:}
+Reads the CSV file from disk, checks that all required columns are present,
+parses dates, makes sure ratings are between 1 and 5, and sorts everything in
+chronological order.  If anything is wrong (file not found, missing column,
+bad rating value) it raises an error immediately before any calculation starts.
+
+\textbf{Key functions:}
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{load\_dataset(path)} --- opens the file, parses and cleans it.
+  \item \texttt{validate\_dataset(df)} --- checks columns and rating range.
+  \item \texttt{dataset\_summary(df)} --- returns a dictionary of headline
+        statistics (number of borrowers, date range, etc.).
+\end{itemize}
+
+%------------------------------------------------------------------------------
+\subsection{Stage 2 --- Transition Extraction (\texttt{src/transitions.py})}
+%------------------------------------------------------------------------------
+
+\textbf{What it does in plain English:}
+For each borrower, looks at pairs of consecutive quarterly records and records
+what rating they moved from and to.  For example, if a borrower was rated 3
+in March and then rated 2 in June, that is a ``$3 \to 2$'' transition.
+It then labels each transition as \emph{normal} or \emph{stress} depending on
+the SPEI value at that time.
+
+\textbf{Important rule:} Transitions \emph{from} State~1 (default) are excluded.
+Once a borrower defaults, they stay in default --- there is nothing to model.
+
+\textbf{Key functions:}
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{extract\_rating\_transitions(df)} --- produces the transitions
+        table.
+  \item \texttt{build\_count\_matrix(transitions, regime)} --- counts how many
+        times each \( i \to j \) transition was observed.  Can be filtered to
+        just normal or just stress transitions.
+  \item \texttt{mle\_matrix\_from\_counts(counts)} --- converts counts into
+        probabilities.  If a rating state was never observed (e.g.\ State~5 had
+        no transitions), a sensible ``prior'' probability is used so no row is
+        left as all zeros.
+\end{itemize}
+
+\textbf{Example count matrix (normal regime):}
+\[
+  C_{\text{normal}} =
+  \begin{pmatrix}
+    0 & 0 & 0 & 0 & 0 \\
+    1 & 5 & 0 & 0 & 0 \\
+    0 & 0 & 8 & 3 & 0 \\
+    0 & 0 & 1 & 6 & 2 \\
+    0 & 0 & 0 & 1 & 2 \\
+  \end{pmatrix}
+\]
+Row $i$, column $j$ = number of times a borrower moved from State~$i$ to
+State~$j$ during normal conditions.
+
+%------------------------------------------------------------------------------
+\subsection{Stage 3 --- Model Estimation (\texttt{src/estimation.py})}
+%------------------------------------------------------------------------------
+
+\textbf{What it does in plain English:}
+Estimates the two matrices ($M_{\text{normal}}$ and $M_{\text{stress}}$) and
+the two blending parameters ($\kappa$ and $\gamma_0$) from the data.
+
+\textbf{Two-stage approach (why not do everything at once?)}
+With only 51 transitions and 34 parameters, fitting everything simultaneously
+is unstable --- the computer can reach wild numbers like
+$\kappa = 9 \times 10^{117}$.  Instead:
+
+\begin{enumerate}
+  \item \textbf{Stage 3a --- Matrix estimation:}
+        Use the hard-threshold labels (normal/stress) to compute
+        $M_{\text{normal}}$ and $M_{\text{stress}}$ directly from the count
+        matrices.
+  \item \textbf{Stage 3b --- Scalar optimisation:}
+        With the matrices fixed, find the values of $\kappa$ and $\gamma_0$
+        that make the observed transitions most probable (maximum likelihood
+        over just two numbers).
+\end{enumerate}
+
+\textbf{What $\kappa$ and $\gamma_0$ mean:}
+\begin{itemize}[leftmargin=1.5em]
+  \item $\gamma_0$ is the ``tipping point'' --- the SPEI level at which the
+        model considers conditions to have switched from normal to drought.
+        Typically around $-0.9$.
+  \item $\kappa$ controls how sharply the switch happens.  A large $\kappa$
+        means almost a hard switch; a small $\kappa$ means a very gradual blend.
+\end{itemize}
+
+\textbf{The regime weight formula:}
+\[
+  \omega(\gamma) = \frac{1}{1 + e^{\kappa(\gamma - \gamma_0)}}
+\]
+This is a decreasing S-curve: when $\gamma \ll \gamma_0$ (deep drought),
+$\omega \to 1$ (full stress weight); when $\gamma \gg \gamma_0$ (wet),
+$\omega \to 0$ (full normal weight).
+
+\textbf{Testing the two-regime model (LRT):}
+The Likelihood Ratio Test asks: ``does adding the second regime actually
+help?''  It compares the log-likelihood of the two-regime model to a simpler
+single-regime model.  A small p-value (below 0.05) would mean the two-regime
+model is significantly better.  With only 51 transitions the test lacks power,
+but the structural distance metric (SVDM) still shows meaningful separation.
+
+\textbf{SVDM (Singular Value Decomposition Metric):}
+A number that measures how different $M_{\text{normal}}$ and $M_{\text{stress}}$
+are from each other.  An SVDM of~0 means identical matrices (no regime
+effect); a large SVDM means the two regimes behave very differently.
+
+%------------------------------------------------------------------------------
+\subsection{Stage 4 --- ECL Forecasting (\texttt{src/forecasting.py})}
+%------------------------------------------------------------------------------
+
+\textbf{What it does in plain English:}
+For each active borrower, projects how likely they are to default over the
+next 5 years (20 quarters) and discounts those losses back to today.
+
+\textbf{Step by step:}
+\begin{enumerate}
+  \item \textbf{Pick the blended matrix} for the current climate ($\gamma$):
+        $P(\gamma) = \omega \cdot M_{\text{stress}} + (1-\omega) \cdot M_{\text{normal}}$.
+  \item \textbf{Multiply the matrix by itself} $h$ times ($P^h$) to get the
+        probability of being in each state after $h$ quarters.
+  \item \textbf{Read off the default column} to get the cumulative probability
+        of having defaulted by quarter $h$.
+  \item \textbf{Calculate the marginal (period-by-period) default probability}:
+        how much did the default probability increase in quarter $h$ compared
+        to quarter $h-1$?
+  \item \textbf{Apply the ECL formula} to each quarter and sum:
+        \[
+          \text{ECL} = \sum_{h=1}^{20}
+          \underbrace{(1+r)^{-h/4}}_{\text{discount factor}}
+          \times \underbrace{\text{EAD}}_{\text{loan balance}}
+          \times \underbrace{\text{LGD}}_{\text{loss fraction}}
+          \times \underbrace{\text{PD}_h}_{\text{marginal default prob}}
+        \]
+        where $r = 5\%$ per year and LGD $= 45\%$ (standard assumption).
+\end{enumerate}
+
+\textbf{Scenario analysis:}
+The same calculation is repeated four times, using different fixed values of
+$\gamma$ to represent different climate futures:
+
+\begin{center}
+\begin{tabular}{lcc}
+  \toprule
+  Scenario & $\gamma$ override & Probability weight \\
+  \midrule
+  Baseline         & $-0.73$ & 55\% \\
+  Moderate Drought & $-1.20$ & 25\% \\
+  Severe Drought   & $-1.80$ & 12\% \\
+  Wet / Recovery   & $+0.80$ &  8\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+The probability-weighted average across all four scenarios gives the
+\emph{expected ECL} that IFRS~9 requires.
+
+%------------------------------------------------------------------------------
+\subsection{Stage 5 --- Backtesting (\texttt{src/validation.py})}
+%------------------------------------------------------------------------------
+
+\textbf{What it does in plain English:}
+Checks how well the model predicted what actually happened, using the same
+data it was trained on (in-sample check, because the dataset is too small for
+a true out-of-sample test).
+
+\textbf{Metrics:}
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{AUC (Area Under the ROC Curve):}
+        Measures discrimination --- how well does the model separate borrowers
+        who defaulted from those who did not?
+        \begin{itemize}
+          \item $0.5$ = no better than random.
+          \item $1.0$ = perfect.
+          \item Values above $0.70$ are considered acceptable in credit risk.
+        \end{itemize}
+  \item \textbf{Brier Score:}
+        Measures calibration --- are the predicted probabilities numerically
+        accurate?  Think of it as the mean squared error of probabilities.
+        \begin{itemize}
+          \item $0$ = perfect.
+          \item Lower is better.
+        \end{itemize}
+\end{itemize}
+
+Both metrics are computed for the two-regime model and for a benchmark
+single-regime model so they can be compared side by side.
+
+\newpage
+%==============================================================================
+\section{Understanding the App Screens}
+%==============================================================================
+
+The Streamlit application has five pages, accessible from the left sidebar.
+
+%------------------------------------------------------------------------------
+\subsection{Page 1 --- Dataset Overview}
+%------------------------------------------------------------------------------
+
+\textbf{Summary cards at the top:} Total observations, number of borrowers,
+number of stress-regime observations, and date range.  These confirm the data
+loaded correctly before any model is run.
+
+\textbf{Rating Distribution bar chart:} Shows how many observations fall into
+each credit state (1 to 5).  A healthy portfolio should have most borrowers
+in states 3--5.  A large bar at state~1 indicates many defaults.
+
+\textbf{SPEI Time Series:} A line chart of the drought index over time for the
+longest-observed borrower.  Red shading marks quarters where
+$\gamma < -1.0$ (drought / stress regime).  This gives a visual sense of how
+often drought conditions occurred in the data period.
+
+\textbf{Raw data table:} The full loaded dataset so you can inspect individual
+records.
+
+%------------------------------------------------------------------------------
+\subsection{Page 2 --- Transition Analysis}
+%------------------------------------------------------------------------------
+
+\textbf{Count matrices (one tab per regime):} Each cell shows how many times
+a borrower moved from the row state to the column state.  A cell on the
+diagonal means the borrower stayed in the same state.  Cells in column~1
+count defaults.
+
+\textbf{Probability matrices (heatmaps):} The count matrices converted to
+row-conditional probabilities.  Darker colours indicate higher probability.
+Comparing the Normal and Stress heatmaps visually shows how default
+probabilities rise under drought.
+
+\textbf{Pooled tab:} All transitions combined, ignoring regime --- this is the
+single-regime baseline.
+
+%------------------------------------------------------------------------------
+\subsection{Page 3 --- Regime Model Estimation}
+%------------------------------------------------------------------------------
+
+\textbf{Model parameter cards:}
+\begin{itemize}[leftmargin=1.5em]
+  \item $\kappa$ --- sharpness of the switch (higher = more abrupt).
+  \item $\gamma_0$ --- SPEI threshold value (the tipping point).
+  \item Log-likelihood --- how well the model fits the data overall (higher /
+        less negative = better).
+  \item Convergence status --- did the optimiser finish successfully?
+\end{itemize}
+
+\textbf{Side-by-side matrix heatmaps ($M_{\text{normal}}$ vs.\
+$M_{\text{stress}}$):} The estimated probability matrices for each regime.
+Compare the default column (column~1, leftmost) across both: under stress the
+default probabilities should be noticeably higher.
+
+\textbf{Regime weight curve:} The S-shaped logistic curve $\omega(\gamma)$
+plotted over the range of drought index values.  The vertical dashed line
+marks $\gamma_0$ (the midpoint where $\omega = 0.5$).  Blue shading on the
+left represents drought conditions; the shaded region on the right represents
+normal/wet conditions.
+
+\textbf{LRT results card:} Likelihood Ratio Test outcome.  Shows the LR
+statistic, degrees of freedom, and p-value.  A p-value below 0.05 would mean
+the two-regime model is statistically significantly better.
+
+\textbf{SVDM card:} The structural distance between the two regime matrices,
+with a bootstrap 95\% confidence interval.  An SVDM of zero means the two
+matrices are identical.
+
+%------------------------------------------------------------------------------
+\subsection{Page 4 --- ECL Scenario Simulator}
+%------------------------------------------------------------------------------
+
+\textbf{Portfolio ECL table:} One row per active borrower showing their
+current rating, loan balance, stress weight $\omega$, one-quarter default
+probability, 5-year cumulative default probability, and ECL amount.  The
+final row shows the portfolio total.
+
+\textbf{Scenario analysis table and bar chart:} Each scenario's portfolio ECL,
+its probability weight, and weighted contribution.  The bar chart shows ECL
+by scenario; a horizontal dashed line marks the probability-weighted expected
+ECL.  Taller bars on the drought scenarios show the climate sensitivity.
+
+\textbf{PD fan chart:} Cumulative default probability over 20 quarters for one
+selected rating state, plotted separately under each climate scenario.  Steeper
+curves mean faster default accumulation.
+
+\textbf{Sliders:} Allow the user to adjust LGD and the forecast horizon
+interactively and see ECL recalculate instantly.
+
+%------------------------------------------------------------------------------
+\subsection{Page 5 --- Backtesting Metrics}
+%------------------------------------------------------------------------------
+
+\textbf{Model comparison table:} AUC and Brier Score for both the two-regime
+and single-regime models side by side.  An improvement in AUC and a reduction
+in Brier Score confirm the two-regime model is better.
+
+\textbf{ROC curves:} Two curves on the same chart --- one for each model.  A
+curve closer to the top-left corner is better (higher true-positive rate at
+low false-positive rate).  The diagonal line represents random guessing.
+
+\textbf{Regime breakdown metrics:} AUC computed separately for normal-regime
+and stress-regime transitions, showing whether the model performs better under
+one condition than the other.
+
+\newpage
+%==============================================================================
+\section{Process Tests}
+%==============================================================================
+
+\subsection{What the Tests Are For}
+
+The tests verify that each stage of the pipeline produces correct output
+\emph{before} the real dataset is touched.  They use small, hand-crafted
+datasets so a failure points directly to the responsible function.  Running
+the tests after any code change confirms nothing was broken.
+
+All 82 tests run in under~3 seconds.
+
+\subsection{Test Files and What They Cover}
+
+\begin{center}
+\begin{tabular}{lp{9cm}}
+  \toprule
+  File & What it tests \\
+  \midrule
+  \texttt{test\_ingestion.py}
+    & File not found; missing columns; out-of-range ratings; correct types;
+      sorted order; \texttt{dataset\_summary} keys and counts. \\
+  \addlinespace
+  \texttt{test\_transitions.py}
+    & Absorbing state excluded; regime labels; count matrix shape and dtype;
+      regime filtering; row-stochastic MLE matrix; zero-count rows handled. \\
+  \addlinespace
+  \texttt{test\_estimation.py}
+    & Regime weight at drought/wet/threshold; no overflow; array input;
+      blend matrix row-stochastic; estimate\_model converges with $\kappa > 0$;
+      LRT returns finite statistic and valid p-value. \\
+  \addlinespace
+  \texttt{test\_forecasting.py}
+    & Cumulative PD monotone and in $[0,1]$; marginal PD non-negative;
+      ECL positive and higher under drought; EAD scaling; portfolio total row;
+      scenario count and expected row. \\
+  \addlinespace
+  \texttt{test\_validation.py}
+    & AUC returns NaN for single class; perfect/worst/random AUC;
+      Brier score 0 for perfect; non-negative; ROC array lengths;
+      backtest columns; y\_true binary; y\_pred in $[0,1]$;
+      validation table returns 2 rows. \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{How to Run the Tests}
+
+\textbf{Step 1 --- Open a terminal and navigate to the prototype folder:}
+\begin{lstlisting}[language=bash, numbers=none]
+cd /path/to/physical-climate-risk/prototype
+\end{lstlisting}
+
+\textbf{Step 2 --- Run all tests with \texttt{uv}:}
+\begin{lstlisting}[language=bash, numbers=none]
+uv run pytest tests/ -v
+\end{lstlisting}
+
+The \texttt{-v} flag shows each test name and PASSED / FAILED.
+
+\textbf{To run only one test file:}
+\begin{lstlisting}[language=bash, numbers=none]
+uv run pytest tests/test_ingestion.py -v
+\end{lstlisting}
+
+\textbf{To run one specific test by name:}
+\begin{lstlisting}[language=bash, numbers=none]
+uv run pytest tests/test_estimation.py::TestRegimeWeight::test_deep_drought_approaches_one -v
+\end{lstlisting}
+
+\textbf{Expected output when all tests pass:}
+\begin{lstlisting}[language=bash, numbers=none]
+======================== 82 passed, 8 warnings in 1.89s ========================
+\end{lstlisting}
+
+\begin{infobox}
+  \textbf{Note on the \texttt{uv} tool.}  This project uses \texttt{uv} to
+  manage dependencies.  It is a fast Python package manager.  Running any
+  command with \texttt{uv run ...} automatically uses the correct virtual
+  environment and installed packages.  You do not need to activate a virtual
+  environment manually.
+\end{infobox}
+
+\newpage
+\subsection{Test Code Listings}
+
+The complete source for each test file is shown below for reference.
+
+%------------------------------------------------------------------------------
+\subsubsection{Stage 1 --- \texttt{tests/test\_ingestion.py}}
+%------------------------------------------------------------------------------
+
+\begin{lstlisting}[caption={test\_ingestion.py --- Stage 1: Data Loading and Validation}]
+"""
+Stage 1 tests: data loading and validation.
+"""
+import sys, os, unittest, tempfile
+import pandas as pd
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from src.ingestion import load_dataset, validate_dataset, dataset_summary
+
+VALID_CSV = """\
+borrower_id,loan_id,rating,obs_date,district,gamma,default_flag,loan_amount
+B01,L01,3,2022-03-31,Harare,-0.50,0,5000
+B01,L01,2,2022-06-30,Harare,-1.20,0,4800
+B02,L02,4,2022-03-31,Bulawayo,0.30,0,8000
+B02,L02,1,2022-06-30,Bulawayo,-1.50,1,0
+"""
+
+def _write_temp_csv(content):
+    tmp = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".csv", delete=False)
+    tmp.write(content); tmp.close()
+    return tmp.name
+
+class TestLoadDataset(unittest.TestCase):
+
+    def test_file_not_found(self):
+        with self.assertRaises(FileNotFoundError):
+            load_dataset("/does/not/exist.csv")
+
+    def test_valid_csv_loads(self):
+        path = _write_temp_csv(VALID_CSV)
+        df = load_dataset(path)
+        self.assertEqual(len(df), 4)
+        os.unlink(path)
+
+    def test_sorted_by_borrower_and_date(self):
+        path = _write_temp_csv(VALID_CSV)
+        df = load_dataset(path)
+        for _, grp in df.groupby("borrower_id"):
+            dates = grp["obs_date"].tolist()
+            self.assertEqual(dates, sorted(dates))
+        os.unlink(path)
+
+class TestValidateDataset(unittest.TestCase):
+
+    def test_missing_column_raises(self):
+        df = pd.DataFrame({"borrower_id": ["B01"],
+                           "rating": [3]})   # missing columns
+        with self.assertRaises(ValueError):
+            validate_dataset(df)
+
+    def test_out_of_range_rating_raises(self):
+        path = _write_temp_csv(
+            "borrower_id,loan_id,rating,obs_date,"
+            "district,gamma,default_flag,loan_amount\n"
+            "B01,L01,9,2022-03-31,Harare,-0.5,0,5000\n")
+        df = pd.read_csv(path)
+        df["obs_date"] = pd.to_datetime(df["obs_date"])
+        df["rating"] = pd.to_numeric(df["rating"])
+        df["gamma"] = pd.to_numeric(df["gamma"])
+        df["loan_amount"] = pd.to_numeric(df["loan_amount"])
+        df["default_flag"] = 0
+        with self.assertRaises(ValueError):
+            validate_dataset(df)
+        os.unlink(path)
+
+class TestDatasetSummary(unittest.TestCase):
+
+    def test_summary_counts_match(self):
+        path = _write_temp_csv(VALID_CSV)
+        df = load_dataset(path)
+        s = dataset_summary(df)
+        self.assertEqual(s["Total observations"], 4)
+        self.assertEqual(s["Unique borrowers"], 2)
+        os.unlink(path)
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsubsection{Stage 2 --- \texttt{tests/test\_transitions.py}}
+%------------------------------------------------------------------------------
+
+\begin{lstlisting}[caption={test\_transitions.py --- Stage 2: Transition Extraction}]
+"""
+Stage 2 tests: transition extraction and count matrices.
+"""
+import sys, os, unittest
+import numpy as np, pandas as pd
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from src.transitions import (
+    extract_rating_transitions, build_count_matrix,
+    mle_matrix_from_counts,
+)
+from config import N_STATES
+
+def _make_panel():
+    rows = [
+        {"borrower_id":"B01","rating":3,"obs_date":pd.Timestamp("2022-03-31"),
+         "gamma":-0.5,"loan_amount":5000,"default_flag":0,
+         "district":"Harare","loan_id":"L01"},
+        {"borrower_id":"B01","rating":2,"obs_date":pd.Timestamp("2022-06-30"),
+         "gamma":-1.5,"loan_amount":4800,"default_flag":0,
+         "district":"Harare","loan_id":"L01"},
+        {"borrower_id":"B01","rating":1,"obs_date":pd.Timestamp("2022-09-30"),
+         "gamma":-1.8,"loan_amount":0,"default_flag":1,
+         "district":"Harare","loan_id":"L01"},
+        {"borrower_id":"B02","rating":4,"obs_date":pd.Timestamp("2022-03-31"),
+         "gamma":0.3,"loan_amount":8000,"default_flag":0,
+         "district":"Bulawayo","loan_id":"L02"},
+        {"borrower_id":"B02","rating":3,"obs_date":pd.Timestamp("2022-06-30"),
+         "gamma":0.2,"loan_amount":7500,"default_flag":0,
+         "district":"Bulawayo","loan_id":"L02"},
+    ]
+    return pd.DataFrame(rows)
+
+class TestExtractRatingTransitions(unittest.TestCase):
+
+    def setUp(self):
+        self.t = extract_rating_transitions(_make_panel())
+
+    def test_absorbing_state_excluded(self):
+        self.assertTrue((self.t["from_rating"] != 1).all())
+
+    def test_expected_transition_count(self):
+        # 3->2 (normal), 2->1 (stress), 4->3 (normal) = 3 total
+        self.assertEqual(len(self.t), 3)
+
+    def test_regime_labels_correct(self):
+        normal = self.t[self.t["gamma"] >= -1.0]
+        self.assertTrue((normal["regime"] == "normal").all())
+        stress = self.t[self.t["gamma"] < -1.0]
+        self.assertTrue((stress["regime"] == "stress").all())
+
+class TestMleMatrixFromCounts(unittest.TestCase):
+
+    def test_row_stochastic(self):
+        counts = np.zeros((N_STATES, N_STATES), dtype=int)
+        counts[2, 1] = 1; counts[2, 2] = 1
+        P = mle_matrix_from_counts(counts)
+        np.testing.assert_allclose(
+            P.sum(axis=1), np.ones(N_STATES), atol=1e-9)
+
+    def test_absorbing_row(self):
+        counts = np.zeros((N_STATES, N_STATES), dtype=int)
+        P = mle_matrix_from_counts(counts)
+        expected = np.zeros(N_STATES); expected[0] = 1.0
+        np.testing.assert_allclose(P[0], expected, atol=1e-12)
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsubsection{Stage 3 --- \texttt{tests/test\_estimation.py}}
+%------------------------------------------------------------------------------
+
+\begin{lstlisting}[caption={test\_estimation.py --- Stage 3: Model Estimation}]
+"""
+Stage 3 tests: regime weight, model estimation, LRT.
+"""
+import sys, os, unittest
+import numpy as np, pandas as pd
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from src.estimation import (
+    regime_weight, blend_matrices,
+    estimate_model, likelihood_ratio_test,
+)
+from config import N_STATES
+
+def _make_transitions():
+    rows = [
+        {"borrower_id":"B01","from_rating":3,"to_rating":2,
+         "gamma":-0.5,"regime":"normal"},
+        {"borrower_id":"B01","from_rating":2,"to_rating":1,
+         "gamma":-1.5,"regime":"stress"},
+        {"borrower_id":"B02","from_rating":4,"to_rating":3,
+         "gamma":0.3,"regime":"normal"},
+        {"borrower_id":"B02","from_rating":3,"to_rating":3,
+         "gamma":0.1,"regime":"normal"},
+        {"borrower_id":"B03","from_rating":5,"to_rating":4,
+         "gamma":-1.2,"regime":"stress"},
+        {"borrower_id":"B03","from_rating":4,"to_rating":4,
+         "gamma":-0.8,"regime":"normal"},
+        {"borrower_id":"B04","from_rating":2,"to_rating":2,
+         "gamma":-1.8,"regime":"stress"},
+        {"borrower_id":"B04","from_rating":3,"to_rating":2,
+         "gamma":-2.0,"regime":"stress"},
+    ]
+    return pd.DataFrame(rows)
+
+class TestRegimeWeight(unittest.TestCase):
+
+    def test_deep_drought_approaches_one(self):
+        w = regime_weight(-10.0, kappa=2.0, gamma0=-1.0)
+        self.assertGreater(w, 0.99)
+
+    def test_wet_conditions_approaches_zero(self):
+        w = regime_weight(10.0, kappa=2.0, gamma0=-1.0)
+        self.assertLess(w, 0.01)
+
+    def test_at_threshold_is_half(self):
+        w = regime_weight(-1.0, kappa=2.0, gamma0=-1.0)
+        self.assertAlmostEqual(w, 0.5, places=9)
+
+    def test_no_overflow_extreme_gamma(self):
+        w_low  = regime_weight(-100.0, kappa=5.0, gamma0=-1.0)
+        w_high = regime_weight( 100.0, kappa=5.0, gamma0=-1.0)
+        self.assertFalse(np.isnan(w_low) or np.isnan(w_high))
+
+class TestEstimateModel(unittest.TestCase):
+
+    def setUp(self):
+        self.result = estimate_model(_make_transitions())
+
+    def test_kappa_positive(self):
+        self.assertGreater(self.result["kappa"], 0.0)
+
+    def test_matrices_row_stochastic(self):
+        for key in ["M_normal", "M_stress"]:
+            row_sums = self.result[key].sum(axis=1)
+            np.testing.assert_allclose(
+                row_sums, np.ones(N_STATES), atol=1e-9)
+
+    def test_empty_transitions_raises(self):
+        with self.assertRaises(ValueError):
+            estimate_model(pd.DataFrame())
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsubsection{Stage 4 --- \texttt{tests/test\_forecasting.py}}
+%------------------------------------------------------------------------------
+
+\begin{lstlisting}[caption={test\_forecasting.py --- Stage 4: ECL Forecasting}]
+"""
+Stage 4 tests: cumulative PD, marginal PD, ECL, scenarios.
+"""
+import sys, os, unittest
+import numpy as np, pandas as pd
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from src.forecasting import (
+    cumulative_pd, marginal_pd, compute_ecl,
+    portfolio_ecl, scenario_analysis,
+)
+from config import N_STATES, DEFAULT_HORIZON, SCENARIOS
+
+def _P():
+    return np.array([
+        [1.00,0.00,0.00,0.00,0.00],
+        [0.10,0.80,0.07,0.02,0.01],
+        [0.04,0.06,0.78,0.09,0.03],
+        [0.01,0.02,0.06,0.82,0.09],
+        [0.00,0.01,0.03,0.08,0.88],
+    ])
+
+def _Ps():  # stress (higher defaults)
+    return np.array([
+        [1.00,0.00,0.00,0.00,0.00],
+        [0.20,0.70,0.06,0.03,0.01],
+        [0.08,0.10,0.70,0.09,0.03],
+        [0.03,0.04,0.08,0.76,0.09],
+        [0.01,0.02,0.04,0.10,0.83],
+    ])
+
+class TestCumulativePD(unittest.TestCase):
+
+    def test_non_decreasing(self):
+        cum = cumulative_pd(3, _P(), DEFAULT_HORIZON)
+        self.assertTrue(np.all(np.diff(cum) >= -1e-12))
+
+    def test_values_in_unit_interval(self):
+        cum = cumulative_pd(3, _P(), DEFAULT_HORIZON)
+        self.assertTrue(np.all(cum >= 0) and np.all(cum <= 1+1e-12))
+
+    def test_higher_risk_borrower_higher_pd(self):
+        cum2 = cumulative_pd(2, _P(), DEFAULT_HORIZON)
+        cum5 = cumulative_pd(5, _P(), DEFAULT_HORIZON)
+        self.assertGreater(cum2[-1], cum5[-1])
+
+class TestComputeECL(unittest.TestCase):
+
+    def test_ecl_positive(self):
+        r = compute_ecl(3, 5000.0, -0.5, _P(), _Ps(), 2.0, -1.0)
+        self.assertGreater(r["ecl"], 0.0)
+
+    def test_ecl_higher_under_drought(self):
+        ecl_n = compute_ecl(3,5000.0,-0.5,_P(),_Ps(),2.0,-1.0)["ecl"]
+        ecl_d = compute_ecl(3,5000.0,-1.8,_P(),_Ps(),2.0,-1.0)["ecl"]
+        self.assertGreater(ecl_d, ecl_n)
+
+    def test_ead_scaling(self):
+        e1 = compute_ecl(3,5000.0,-0.5,_P(),_Ps(),2.0,-1.0)["ecl"]
+        e2 = compute_ecl(3,10000.0,-0.5,_P(),_Ps(),2.0,-1.0)["ecl"]
+        self.assertAlmostEqual(e2/e1, 2.0, places=6)
+
+class TestPortfolioECL(unittest.TestCase):
+
+    def test_portfolio_total_row(self):
+        loans = pd.DataFrame([
+            {"borrower_id":"B01","rating":3,"loan_amount":5000,"gamma":-0.5},
+            {"borrower_id":"B02","rating":4,"loan_amount":8000,"gamma":-0.5},
+        ])
+        df = portfolio_ecl(loans, _P(), _Ps(), 2.0, -1.0)
+        self.assertIn("PORTFOLIO TOTAL", df["Borrower ID"].values)
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsubsection{Stage 5 --- \texttt{tests/test\_validation.py}}
+%------------------------------------------------------------------------------
+
+\begin{lstlisting}[caption={test\_validation.py --- Stage 5: Backtesting Metrics}]
+"""
+Stage 5 tests: AUC, Brier Score, backtest predictions.
+"""
+import sys, os, unittest
+import numpy as np, pandas as pd
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from src.validation import (
+    calculate_auc, calculate_brier_score,
+    backtest_predictions, validation_metrics,
+)
+from src.transitions import build_count_matrix, mle_matrix_from_counts
+
+def _P(dp=0.05):
+    K = 5; P = np.zeros((K,K))
+    P[0,0] = 1.0
+    for i in range(1,K):
+        P[i,0] = dp; P[i,i] = 1-dp
+    return P
+
+def _transitions():
+    rows = [
+        {"borrower_id":"B01","from_rating":2,"to_rating":1,
+         "gamma":-1.5,"regime":"stress"},
+        {"borrower_id":"B02","from_rating":3,"to_rating":1,
+         "gamma":-1.8,"regime":"stress"},
+        {"borrower_id":"B03","from_rating":4,"to_rating":4,
+         "gamma":-0.5,"regime":"normal"},
+        {"borrower_id":"B04","from_rating":5,"to_rating":4,
+         "gamma":0.3,"regime":"normal"},
+        {"borrower_id":"B05","from_rating":3,"to_rating":3,
+         "gamma":-0.2,"regime":"normal"},
+        {"borrower_id":"B06","from_rating":2,"to_rating":2,
+         "gamma":-1.2,"regime":"stress"},
+    ]
+    return pd.DataFrame(rows)
+
+class TestCalculateAUC(unittest.TestCase):
+
+    def test_single_class_returns_nan(self):
+        result = calculate_auc(np.array([0,0,0]), np.array([0.1,0.2,0.3]))
+        self.assertTrue(np.isnan(result))
+
+    def test_perfect_returns_one(self):
+        result = calculate_auc(np.array([1,1,0,0]),
+                               np.array([0.9,0.8,0.1,0.2]))
+        self.assertAlmostEqual(result, 1.0, places=6)
+
+class TestCalculateBrierScore(unittest.TestCase):
+
+    def test_perfect_returns_zero(self):
+        result = calculate_brier_score(np.array([1,0]),
+                                       np.array([1.0,0.0]))
+        self.assertAlmostEqual(result, 0.0, places=9)
+
+    def test_non_negative(self):
+        result = calculate_brier_score(np.array([1,0,0]),
+                                       np.array([0.6,0.3,0.1]))
+        self.assertGreaterEqual(result, 0.0)
+
+class TestBacktestPredictions(unittest.TestCase):
+
+    def test_y_true_binary(self):
+        df = backtest_predictions(
+            _transitions(), _P(0.04), _P(0.12), 2.0, -1.0)
+        self.assertTrue(set(df["y_true"].unique()).issubset({0,1}))
+
+    def test_y_pred_in_unit_interval(self):
+        df = backtest_predictions(
+            _transitions(), _P(0.04), _P(0.12), 2.0, -1.0)
+        self.assertTrue((df["y_pred"] >= 0).all()
+                        and (df["y_pred"] <= 1).all())
+
+class TestValidationMetrics(unittest.TestCase):
+
+    def test_returns_two_rows(self):
+        t = _transitions()
+        M_single = mle_matrix_from_counts(
+            build_count_matrix(t, regime=None))
+        df = validation_metrics(
+            t, _P(0.04), _P(0.12), 2.0, -1.0, M_single)
+        self.assertEqual(len(df), 2)
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
+\end{lstlisting}
+
+\newpage
+%==============================================================================
+\section{Quick Reference}
+%==============================================================================
+
+\begin{center}
+\begin{tabular}{ll}
+  \toprule
+  Task & Command \\
+  \midrule
+  Run all tests       & \texttt{uv run pytest tests/ -v} \\
+  Run one test file   & \texttt{uv run pytest tests/test\_ingestion.py -v} \\
+  Start the app       & \texttt{uv run streamlit run app.py} \\
+  Compile this PDF    & \texttt{pdflatex explanation.tex} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{1cm}
+
+\begin{infobox}
+  \textbf{Project file structure summary:}\\[4pt]
+  \texttt{prototype/}\\
+  \quad \texttt{app.py} --- Streamlit application (5 pages)\\
+  \quad \texttt{config.py} --- All constants and hyperparameters\\
+  \quad \texttt{data/jay\_dataset.csv} --- The MFI panel dataset\\
+  \quad \texttt{src/ingestion.py} --- Stage 1: data loading\\
+  \quad \texttt{src/transitions.py} --- Stage 2: transition extraction\\
+  \quad \texttt{src/estimation.py} --- Stage 3: model estimation\\
+  \quad \texttt{src/forecasting.py} --- Stage 4: ECL calculation\\
+  \quad \texttt{src/validation.py} --- Stage 5: backtesting\\
+  \quad \texttt{src/svdm.py} --- SVDM and bootstrap confidence intervals\\
+  \quad \texttt{src/plots.py} --- All charts and figures\\
+  \quad \texttt{tests/} --- Unit tests (one file per stage)\\[4pt]
+  \texttt{document/document.tex} --- Full research dissertation (LaTeX)\\
+  \texttt{explanation/explanation.tex} --- This document
+\end{infobox}
+
+\end{document}
