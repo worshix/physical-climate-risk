@@ -64,7 +64,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`,
       {
         headers: {
-          'User-Agent': 'TobaccoAssessmentApp/1.0',
+          'User-Agent': 'AgriFin Risk Monitor/1.0',
         },
       }
     );

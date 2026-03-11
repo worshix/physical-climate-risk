@@ -115,7 +115,7 @@ export default function CreateFieldPage() {
             <div className="space-y-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">1</div>
               <p className="text-sm font-medium text-slate-700">Name your field</p>
-              <p className="text-xs text-slate-500">Choose a name that helps you identify this specific tobacco field.</p>
+              <p className="text-xs text-slate-500">Choose a name that helps you identify this specific field.</p>
               <div className="pt-2">
                 <Label htmlFor="fieldName" className="sr-only">Field Name</Label>
                 <Input 
@@ -181,7 +181,7 @@ export default function CreateFieldPage() {
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Metadata</p>
               <div className="space-y-2">
                 <Label className="text-xs">Crop Type</Label>
-                <Input value="Tobacco" disabled className="bg-slate-50 border-slate-200 h-8 text-xs" />
+                <Input value="Other" disabled className="bg-slate-50 border-slate-200 h-8 text-xs" />
               </div>
             </div>
           </div>

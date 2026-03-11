@@ -81,7 +81,7 @@ export default async function FieldOverviewPage({ params }: { params: { fieldId:
                   <div>
                     <h2 className="text-2xl font-bold text-slate-900">{field.name}</h2>
                     <p className="text-slate-500 flex items-center gap-1">
-                      <Info className="h-4 w-4" /> This is your tobacco cultivation plot in {field.location || "Zimbabwe"}.
+                      <Info className="h-4 w-4" /> This is your agricultural field in {field.location || "Zimbabwe"}.
                     </p>
                   </div>
                   <Link href={`/field/${field.id}/analyse`}>
@@ -107,7 +107,7 @@ export default async function FieldOverviewPage({ params }: { params: { fieldId:
                     <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest">Crop Species</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold text-emerald-700">{field.cropType || "Tobacco"}</p>
+                    <p className="text-2xl font-bold text-emerald-700">{field.cropType || "Unknown"}</p>
                   </CardContent>
                </Card>
             </div>

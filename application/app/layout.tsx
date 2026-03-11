@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tobacco Field Assessment",
-  description: "Tool for assessing tobacco fields using satellite imagery and geospatial data.",
+  title: "AgriFin Risk Monitor",
+  description: "IFRS 9 ECL credit risk platform for agricultural microfinance institutions.",
 };
 
 export default function RootLayout({

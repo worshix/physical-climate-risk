@@ -54,7 +54,7 @@ export default async function DashboardPage() {
             <div className="bg-emerald-600 p-1.5 rounded-lg">
               <Leaf className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold text-slate-900 tracking-tight">TobaccoGuard</span>
+            <span className="text-lg font-bold text-slate-900 tracking-tight">AgriFin Risk Monitor</span>
           </Link>
         </div>
         <div className="flex items-center gap-4">
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Welcome, {user.name.split(" ")[0]}</h1>
-            <p className="text-slate-500">Real-time monitoring of your tobacco plots.</p>
+            <p className="text-slate-500">Monitor your farm health and credit risk in real-time.</p>
           </div>
           <Link href="/field/create">
             <Button className="bg-emerald-600 hover:bg-emerald-700 gap-2 h-11 px-6 shadow-sm">

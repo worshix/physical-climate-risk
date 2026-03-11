@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { predictCropHealth, MLFeatures } from "@/lib/ml/inference";
+import { predictAgriculturalHealth, MLFeatures } from "@/lib/ml/inference";
 import { getRecommendations } from "@/lib/analysis/recommendations";
 import { getSatelliteData } from "@/lib/gee/satellite";
 
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     };
 
     // 3. Run Inference
-    const healthStatus = predictCropHealth(features);
+    const healthStatus = predictAgriculturalHealth(features);
 
     // 4. Get Recommendations
     const recommendations = getRecommendations({

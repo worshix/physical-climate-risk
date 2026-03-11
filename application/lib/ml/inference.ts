@@ -1,4 +1,4 @@
-import modelData from "../../models/models/crop_health_model.json";
+import modelData from "../../models/models/agricultural_health_model.json";
 
 export type HealthStatus = "HEALTHY" | "HIGH_STRESS" | "MODERATE_STRESS";
 
@@ -14,7 +14,7 @@ export interface MLFeatures {
  * Performs Logistic Regression inference using the exported weights.
  * Calculation: z = sum(w * x) + b for each class.
  */
-export function predictCropHealth(features: MLFeatures): HealthStatus {
+export function predictAgriculturalHealth(features: MLFeatures): HealthStatus {
   const { coefficients, intercept, classes } = modelData;
   const featureValues = [
     features.mean_ndvi,
