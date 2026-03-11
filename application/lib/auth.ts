@@ -31,3 +31,12 @@ export async function getAdminSession(): Promise<Session | null> {
   if (!session || session.role !== "ADMIN") return null;
   return session;
 }
+
+/**
+ * Returns the session if the user is a BORROWER, otherwise returns null.
+ */
+export async function getBorrowerSession(): Promise<Session | null> {
+  const session = await getSession();
+  if (!session || session.role !== "BORROWER") return null;
+  return session;
+}
