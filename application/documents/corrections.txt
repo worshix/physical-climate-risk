@@ -1,0 +1,17 @@
+1. Integration of Live Satellite APIs
+The most critical limitation currently is that your NDVI values are estimates based on geolocation rather than actual imagery.  
+• The Goal: You must replace these estimates with real multispectral data.
+• Action: Integrate the Google Earth Engine API or Sentinel Hub to fetch live Sentinel-2 data. This is essential to prove the system works in a real-world environment.  
+2. Transition to Real-World Training Data
+Your model currently achieves 97% accuracy, but it was trained on 610 synthetic samples. Synthetic data often lacks the "noise" and complexity of real-world farming.  
+• Action: You need to collect ground-truth data. Match historical satellite imagery with actual field observations of tobacco health (pests, water stress, or nutrient deficiencies) to retrain and validate your logistic regression model.  
+3. Implementing Temporal (Time-Series) Analysis
+Currently, the system provides a "point-in-time" snapshot. In tobacco farming, the trend (is the health improving or declining?) is often more important than a single reading.  
+• Action: Update your Analysis API to fetch a 14-to-30-day window of data. This will allow your system to detect declining health trends before the crop reaches a "High Stress" state.  
+4. Sub-Field Spatial Resolution
+At the moment, you treat the entire field boundary as a single unit.  
+• The Goal: Even in small fields, one corner might be drying out while the rest is healthy.
+• Action: Work on within-field variability analysis. Instead of one aggregate health badge, your dashboard should eventually show a heatmap indicating specific "stress hotspots" within the drawn polygon.  
+5. Database Scalability
+• Action: While SQLite is fine for the prototype, you should transition to PostgreSQL with PostGIS. This will allow you to handle more complex spatial queries and larger datasets as you scale to more farmers.  
+You have a very strong architectural foundation here. Replacing the simulated data with live feeds is the final step to making this a truly "innovative" tool for Zimbabwean agriculture.

@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  fields    Field[]
+  createdAt DateTime @default(now())
+}
+
+model Field {
+  id        String   @id @default(cuid())
+  name      String
+  cropType  String   @default("Tobacco")
+  polygon   String   // GeoJSON stored as string
+  area      Float?   // Calculated area in hectares
+  location  String?  // Reverse geocoded location name
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  analyses  Analysis[]
+  createdAt DateTime @default(now())
+}
+
+model Analysis {
+  id              String   @id @default(cuid())
+  fieldId         String
+  field           Field    @relation(fields: [fieldId], references: [id])
+
+  meanNDVI        Float
+  ndviTrend       NDVITrend
+  healthStatus    HealthStatus
+
+  avgTemperature  Float
+  totalRainfall   Float
+
+  waterStressRisk Boolean
+  diseaseRisk     Boolean
+
+  rawData         String   // JSON string (NDVI series, weather)
+  recommendations String   // JSON string or text array
+
+  createdAt       DateTime @default(now())
+}
+
+enum NDVITrend {
+  IMPROVING
+  STABLE
+  DECLINING
+}
+
+enum HealthStatus {
+  HEALTHY
+  MODERATE_STRESS
+  HIGH_STRESS
+}

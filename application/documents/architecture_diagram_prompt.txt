@@ -1,0 +1,163 @@
+COMPREHENSIVE AI PROMPT FOR SYSTEM ARCHITECTURE DIAGRAM
+========================================================
+
+CONTEXT:
+This is for an academic research paper on a tobacco crop health monitoring system that uses satellite data and machine learning. The diagram needs to be professional, clear, and suitable for IEEE journal publication.
+
+DIAGRAM REQUIREMENTS:
+- Style: Professional technical architecture diagram
+- Format: PNG image, 3.5 inches wide (1050 pixels at 300 DPI)
+- Color scheme: Professional blues, greens, and grays (avoid bright colors)
+- Layout: Vertical flow from top to bottom showing three distinct layers
+- Font: Clean, readable sans-serif font (Arial or similar)
+
+========================================================
+
+PROMPT FOR AI IMAGE GENERATOR:
+========================================================
+
+Create a professional system architecture diagram for a web-based agricultural monitoring system. The diagram should show three distinct horizontal layers stacked vertically with clear separation between them:
+
+**LAYER 1 - DATA LAYER (Top)**
+Background: Light blue (#E3F2FD)
+Contains three components arranged horizontally:
+1. "Satellite Data" box with satellite icon
+   - Sub-text: "NDVI Estimation"
+   - Sub-text: "Geolocation Analysis"
+2. "Weather API" box with cloud icon
+   - Sub-text: "Open-Meteo"
+   - Sub-text: "Temperature & Rainfall"
+3. "Database" box with database cylinder icon
+   - Sub-text: "SQLite/Prisma"
+   - Sub-text: "GeoJSON Polygons"
+
+**LAYER 2 - ANALYSIS LAYER (Middle)**
+Background: Light green (#E8F5E9)
+Contains three components arranged horizontally:
+1. "Python ML Pipeline" box with gear icon
+   - Sub-text: "Model Training"
+   - Sub-text: "Scikit-learn"
+2. "JavaScript Inference" box with code icon
+   - Sub-text: "Real-time Predictions"
+   - Sub-text: "Logistic Regression"
+3. "Rule Engine" box with decision tree icon
+   - Sub-text: "Recommendations"
+   - Sub-text: "Expert Rules"
+
+**LAYER 3 - PRESENTATION LAYER (Bottom)**
+Background: Light gray (#F5F5F5)
+Contains three components arranged horizontally:
+1. "Next.js Web App" box with browser window icon
+   - Sub-text: "React Components"
+   - Sub-text: "TypeScript"
+2. "Interactive Maps" box with map pin icon
+   - Sub-text: "React-Leaflet"
+   - Sub-text: "Polygon Drawing"
+3. "Dashboard UI" box with chart icon
+   - Sub-text: "Analysis Results"
+   - Sub-text: "Recommendations"
+
+**CONNECTIONS:**
+- Downward arrows from Data Layer components to Analysis Layer (showing data flow)
+- Downward arrows from Analysis Layer components to Presentation Layer (showing results flow)
+- Arrows should be solid, medium thickness, dark gray color
+
+**LABELS:**
+- Large bold text on the left side of each layer:
+  * "DATA LAYER"
+  * "ANALYSIS LAYER"
+  * "PRESENTATION LAYER"
+
+**OVERALL STYLE:**
+- Clean, modern, professional appearance
+- Rounded corners on all boxes (5-10px radius)
+- Subtle drop shadows on boxes for depth
+- Consistent spacing between components
+- White background
+- All text should be clearly readable
+- Icons should be simple, monochromatic, and professional
+
+**DIMENSIONS:**
+- Width: 1050 pixels (3.5 inches at 300 DPI)
+- Height: Approximately 1200-1400 pixels (maintain good proportions)
+- Ensure high resolution for print quality
+
+========================================================
+
+ALTERNATIVE SIMPLIFIED PROMPT (if the above is too complex):
+========================================================
+
+Create a clean technical architecture diagram showing three horizontal layers:
+
+TOP LAYER (Light Blue Background):
+- Title: "DATA LAYER"
+- Three boxes: "Satellite Data (NDVI)", "Weather API (Open-Meteo)", "Database (Prisma)"
+
+MIDDLE LAYER (Light Green Background):
+- Title: "ANALYSIS LAYER"
+- Three boxes: "Python ML Training", "JavaScript Inference", "Rule-based Recommendations"
+
+BOTTOM LAYER (Light Gray Background):
+- Title: "PRESENTATION LAYER"
+- Three boxes: "Next.js Web App", "Interactive Maps (Leaflet)", "Dashboard UI"
+
+Add downward arrows showing data flow from top to bottom between layers.
+Style: Professional, clean, suitable for academic publication.
+Size: 1050x1200 pixels, 300 DPI.
+
+========================================================
+
+TOOLS YOU CAN USE:
+========================================================
+
+1. **AI Image Generators:**
+   - DALL-E 3 (via ChatGPT Plus)
+   - Midjourney
+   - Adobe Firefly
+   - Stable Diffusion
+
+2. **Diagram Tools (Manual Creation):**
+   - Draw.io (diagrams.net) - Free, web-based
+   - Lucidchart - Professional diagrams
+   - Microsoft PowerPoint - Simple but effective
+   - Canva - User-friendly with templates
+   - Figma - Professional design tool
+
+3. **Recommended Approach:**
+   If AI generators don't produce satisfactory results, use Draw.io:
+   - Go to https://app.diagrams.net/
+   - Create new diagram
+   - Use rectangle shapes for boxes
+   - Use arrow connectors
+   - Add text labels
+   - Export as PNG at 300 DPI
+
+========================================================
+
+QUALITY CHECKLIST:
+========================================================
+
+Before finalizing, ensure:
+✓ All text is clearly readable
+✓ Layer separation is visually obvious
+✓ Arrows clearly show data flow direction
+✓ Color scheme is professional (not too bright)
+✓ Image resolution is 300 DPI for print quality
+✓ File size is reasonable (under 2MB)
+✓ Background is white or transparent
+✓ All components are properly aligned
+✓ Font sizes are consistent within each layer
+✓ The diagram fits the 3.5-inch width requirement
+
+========================================================
+
+SAVE INSTRUCTIONS:
+========================================================
+
+Once generated:
+1. Save the image as: system_architecture_diagram.png
+2. Place it in the documents/ folder
+3. Verify dimensions: 1050 pixels wide (3.5 inches at 300 DPI)
+4. Check that the LaTeX compilation no longer shows errors
+
+========================================================

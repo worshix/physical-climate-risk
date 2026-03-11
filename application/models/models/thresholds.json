@@ -1,0 +1,12 @@
+{
+  "ndvi": {
+    "healthy": 0.6,
+    "moderate": 0.45
+  },
+  "rainfall": {
+    "low": 20
+  },
+  "temperature": {
+    "high": 30
+  }
+}
