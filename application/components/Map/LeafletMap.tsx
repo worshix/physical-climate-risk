@@ -106,7 +106,7 @@ export default function LeafletMap({
           opacity={0.7}
         />
 
-        <GoToLocationHandler location={goToLocation} />
+        <GoToLocationHandler location={goToLocation ?? null} />
 
         {editable && (
           <FeatureGroup ref={featureGroupRef}>

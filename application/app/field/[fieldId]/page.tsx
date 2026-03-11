@@ -21,7 +21,7 @@ export default async function FieldOverviewPage({ params }: { params: { fieldId:
   const field = await prisma.field.findUnique({
     where: { 
       id: fieldId,
-      userId: userId // Only allow access to owner
+      borrowerId: userId // Only allow access to owner
     },
   });
 

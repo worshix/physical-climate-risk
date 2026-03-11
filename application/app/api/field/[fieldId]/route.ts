@@ -20,7 +20,7 @@ export async function DELETE(
     const field = await prisma.field.findUnique({
       where: { 
         id: fieldId,
-        userId: userId,
+        borrowerId: userId,
       },
     });
 

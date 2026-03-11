@@ -9,49 +9,151 @@ datasource db {
   provider = "sqlite"
 }
 
+// ─────────────────────────────────────────
+// USERS  (Admin + Borrowers)
+// ─────────────────────────────────────────
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  fields    Field[]
-  createdAt DateTime @default(now())
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  password        String
+  role            String    @default("BORROWER") // "ADMIN" or "BORROWER"
+  phone           String?
+  nationalId      String?
+  district        String?   // e.g. "Mashonaland Central"
+  primaryActivity String?   // e.g. "Smallholder Agriculture"
+  loans           Loan[]
+  fields          Field[]
+  createdAt       DateTime  @default(now())
 }
 
+// ─────────────────────────────────────────
+// LOANS
+// ─────────────────────────────────────────
+model Loan {
+  id               String              @id @default(cuid())
+  borrowerId       String
+  borrower         User                @relation(fields: [borrowerId], references: [id], onDelete: Cascade)
+  loanRef          String              @unique
+  currentRating    Int                 // 1 (default) – 5 (best)
+  loanAmount       Float               // current outstanding balance (EAD)
+  disbursementDate DateTime
+  stage            String              @default("STAGE_1") // STAGE_1 | STAGE_2 | STAGE_3
+  status           String              @default("ACTIVE")  // ACTIVE | DEFAULT | REPAID
+  observations     RatingObservation[]
+  eclForecasts     ECLForecast[]
+  createdAt        DateTime            @default(now())
+}
+
+// ─────────────────────────────────────────
+// RATING OBSERVATIONS  (quarterly time-series per loan)
+// ─────────────────────────────────────────
+model RatingObservation {
+  id          String   @id @default(cuid())
+  loanId      String
+  loan        Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  obsPeriod   String   // e.g. "2024Q4"
+  obsDate     DateTime
+  rating      Int      // 1–5
+  defaultFlag Boolean  @default(false)
+  gamma       Float    // drought index value for this period/district
+  loanAmount  Float    // outstanding balance at this observation
+  createdAt   DateTime @default(now())
+}
+
+// ─────────────────────────────────────────
+// FIELDS  (farm polygons, linked to borrower)
+// ─────────────────────────────────────────
 model Field {
-  id        String   @id @default(cuid())
-  name      String
-  cropType  String   @default("Tobacco")
-  polygon   String   // GeoJSON stored as string
-  area      Float?   // Calculated area in hectares
-  location  String?  // Reverse geocoded location name
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  analyses  Analysis[]
-  createdAt DateTime @default(now())
+  id         String     @id @default(cuid())
+  name       String
+  cropType   String
+  polygon    String     // GeoJSON stored as string
+  area       Float?     // calculated area in hectares
+  location   String?    // reverse-geocoded place name
+  district   String?    // auto-filled from reverse geocoding
+  borrowerId String
+  borrower   User       @relation(fields: [borrowerId], references: [id], onDelete: Cascade)
+  analyses   Analysis[]
+  createdAt  DateTime   @default(now())
 }
 
+// ─────────────────────────────────────────
+// ANALYSIS  (satellite + weather results per field run)
+// ─────────────────────────────────────────
 model Analysis {
-  id              String   @id @default(cuid())
-  fieldId         String
-  field           Field    @relation(fields: [fieldId], references: [id])
+  id                String       @id @default(cuid())
+  fieldId           String
+  field             Field        @relation(fields: [fieldId], references: [id], onDelete: Cascade)
 
-  meanNDVI        Float
-  ndviTrend       NDVITrend
-  healthStatus    HealthStatus
+  // NDVI + health
+  meanNDVI          Float
+  ndviTrend         NDVITrend
+  healthStatus      HealthStatus
 
-  avgTemperature  Float
-  totalRainfall   Float
+  // Weather (14-day)
+  avgTemperature    Float
+  totalRainfall     Float
 
-  waterStressRisk Boolean
-  diseaseRisk     Boolean
+  // Risk flags
+  waterStressRisk   Boolean
+  diseaseRisk       Boolean
 
-  rawData         String   // JSON string (NDVI series, weather)
-  recommendations String   // JSON string or text array
+  // Climate / credit risk inputs derived from satellite+weather
+  gamma             Float        @default(0)  // drought index proxy
+  regimeWeight      Float        @default(0)  // ω(γ) — degree of drought stress (0–1)
+  agriculturalScore Float        @default(0)  // 0–100 field health score
 
-  createdAt       DateTime @default(now())
+  rawData           String       // JSON: NDVI series, weather readings
+  recommendations   String       // JSON array of recommendation strings
+
+  createdAt         DateTime     @default(now())
 }
 
+// ─────────────────────────────────────────
+// ECL FORECASTS  (IFRS 9 per loan)
+// ─────────────────────────────────────────
+model ECLForecast {
+  id                 String   @id @default(cuid())
+  loanId             String
+  loan               Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  computedAt         DateTime @default(now())
+
+  currentGamma       Float    // γ at time of computation
+  regimeWeight       Float    // ω(γ)
+  onePeriodPD        Float    // one-quarter PD from blended matrix
+
+  // ECL by horizon
+  ecl1Year           Float    // 4-quarter (IFRS 9 Stage 1 baseline)
+  ecl5Year           Float    // 20-quarter lifetime
+
+  // ECL by scenario
+  eclBaseline        Float    // γ = −0.73 (historical avg), prob 55%
+  eclModerateDrought Float    // γ = −1.20, prob 25%
+  eclSevereDrought   Float    // γ = −1.80, prob 12%
+  eclWetRecovery     Float    // γ = +0.80, prob 8%
+  eclExpected        Float    // probability-weighted expected ECL
+
+  lgd                Float    @default(0.45)
+  discountRate       Float    @default(0.05)
+}
+
+// ─────────────────────────────────────────
+// MIGRATION MATRICES  (M_normal and M_stress)
+// ─────────────────────────────────────────
+model MigrationMatrix {
+  id          String   @id @default(cuid())
+  matrixType  String   // "NORMAL" or "STRESS"
+  kappa       Float    // logistic sharpness parameter κ
+  gamma0      Float    // logistic threshold parameter γ₀
+  matrixData  String   // JSON: 5×5 array (row = from-state, col = to-state)
+  source      String   @default("DEFAULT") // "ESTIMATED" or "DEFAULT"
+  createdAt   DateTime @default(now())
+}
+
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
 enum NDVITrend {
   IMPROVING
   STABLE

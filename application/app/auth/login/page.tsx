@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Leaf } from "lucide-react";
 
 export default function LoginPage() {
@@ -35,9 +35,14 @@ export default function LoginPage() {
         throw new Error(data.error || "Login failed");
       }
 
-      router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+      // Redirect based on role returned from login API
+      if (data.user.role === "ADMIN") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/borrower/dashboard");
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
@@ -54,7 +59,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">Welcome back</CardTitle>
           <CardDescription className="text-slate-500">
-            Log in to manage your fields
+            AgriFin Risk Monitor
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -66,29 +71,29 @@ export default function LoginPage() {
             )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="john@example.com" 
-                required 
-                className="border-slate-200 focus:border-emerald-500" 
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+                className="border-slate-200 focus:border-emerald-500"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
-                className="border-slate-200 focus:border-emerald-500" 
+              <Input
+                id="password"
+                type="password"
+                required
+                className="border-slate-200 focus:border-emerald-500"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-11"
               disabled={loading}
             >
@@ -96,13 +101,13 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4 border-t border-slate-100 pt-6">
-          <div className="text-center text-sm text-slate-500">
-            Don&apos;t have an account?{" "}
+        <CardFooter className="border-t border-slate-100 pt-6">
+          <p className="text-center w-full text-sm text-slate-500">
+            No account?{" "}
             <Link href="/auth/signup" className="text-emerald-600 font-semibold hover:underline">
-              Sign up
+              Contact your credit officer
             </Link>
-          </div>
+          </p>
         </CardFooter>
       </Card>
     </div>

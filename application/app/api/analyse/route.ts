@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const field = await prisma.field.findUnique({
       where: { 
         id: fieldId,
-        userId: userId,
+        borrowerId: userId,
       },
     });
 

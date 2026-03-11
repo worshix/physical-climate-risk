@@ -38,7 +38,8 @@ export async function POST(req: Request) {
         polygon: JSON.stringify(polygon),
         area,
         location,
-        userId,
+        borrowerId: userId,
+        cropType: "Unknown",
       },
     });
 
