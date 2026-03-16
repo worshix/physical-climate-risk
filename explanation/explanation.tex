@@ -163,7 +163,7 @@ the deeper the drought is.
 \subsection{File Location}
 
 \begin{lstlisting}[language=bash, numbers=none]
-prototype/data/jay_dataset.csv
+jay_dataset.csv
 \end{lstlisting}
 
 \subsection{What Each Column Means}
@@ -180,7 +180,7 @@ prototype/data/jay_dataset.csv
   obs\_date      & The date this observation was recorded
                    (one record per quarter per borrower). \\
   district       & The district the borrower lives in. \\
-  gamma          & The SPEI drought index for that period.
+  gamma          & The SPEI-3 drought index for that period.
                    Negative means dry; positive means wet.
                    Below $-1.0$ is considered a drought. \\
   default\_flag  & 1 if the borrower is in default this quarter, 0 otherwise. \\
@@ -205,6 +205,8 @@ prototype/data/jay_dataset.csv
   Evapotranspiration Index (SPEI) measures how dry or wet conditions are
   compared with the long-term average.  A value of $0$ is normal; $-1$ means
   moderately dry; $-2$ means severely dry; $+1$ means unusually wet.
+  The 3-month accumulation (SPEI-3) is used as the drought proxy $\gamma$
+  throughout this project.
 \end{infobox}
 
 \newpage
@@ -311,9 +313,10 @@ $\kappa = 9 \times 10^{117}$.  Instead:
 \begin{itemize}[leftmargin=1.5em]
   \item $\gamma_0$ is the ``tipping point'' --- the SPEI level at which the
         model considers conditions to have switched from normal to drought.
-        Typically around $-0.9$.
-  \item $\kappa$ controls how sharply the switch happens.  A large $\kappa$
-        means almost a hard switch; a small $\kappa$ means a very gradual blend.
+        Estimated at $-1.10$ from the data.
+  \item $\kappa$ controls how sharply the switch happens.  Estimated at $1.25$.
+        A large $\kappa$ means almost a hard switch; a small $\kappa$ means a
+        very gradual blend.
 \end{itemize}
 
 \textbf{The regime weight formula:}
@@ -357,7 +360,7 @@ next 5 years (20 quarters) and discounts those losses back to today.
         to quarter $h-1$?
   \item \textbf{Apply the ECL formula} to each quarter and sum:
         \[
-          \text{ECL} = \sum_{h=1}^{20}
+          \text{ECL} = \sum_{h=1}^{H}
           \underbrace{(1+r)^{-h/4}}_{\text{discount factor}}
           \times \underbrace{\text{EAD}}_{\text{loan balance}}
           \times \underbrace{\text{LGD}}_{\text{loss fraction}}
@@ -419,116 +422,249 @@ single-regime model so they can be compared side by side.
 
 \newpage
 %==============================================================================
-\section{Understanding the App Screens}
+\section{The Web Application --- AgriFin Risk Monitor}
 %==============================================================================
 
-The Streamlit application has five pages, accessible from the left sidebar.
+The \textbf{AgriFin Risk Monitor} is a Next.js 16 web application that
+demonstrates the model in realistic operational use.  It has two user roles
+--- credit officer (Admin) and farmer (Borrower) --- and replaces the earlier
+Streamlit prototype as the primary interactive deliverable.
+
+The application runs at \texttt{http://localhost:3000} after starting the
+development server (see Section~\ref{sec:quickref}).
 
 %------------------------------------------------------------------------------
-\subsection{Page 1 --- Dataset Overview}
+\subsection{Landing Page (\texttt{/})}
 %------------------------------------------------------------------------------
 
-\textbf{Summary cards at the top:} Total observations, number of borrowers,
-number of stress-regime observations, and date range.  These confirm the data
-loaded correctly before any model is run.
+The public home page explains the system in plain language without exposing
+any model parameters.  It shows:
 
-\textbf{Rating Distribution bar chart:} Shows how many observations fall into
-each credit state (1 to 5).  A healthy portfolio should have most borrowers
-in states 3--5.  A large bar at state~1 indicates many defaults.
-
-\textbf{SPEI Time Series:} A line chart of the drought index over time for the
-longest-observed borrower.  Red shading marks quarters where
-$\gamma < -1.0$ (drought / stress regime).  This gives a visual sense of how
-often drought conditions occurred in the data period.
-
-\textbf{Raw data table:} The full loaded dataset so you can inspect individual
-records.
-
-%------------------------------------------------------------------------------
-\subsection{Page 2 --- Transition Analysis}
-%------------------------------------------------------------------------------
-
-\textbf{Count matrices (one tab per regime):} Each cell shows how many times
-a borrower moved from the row state to the column state.  A cell on the
-diagonal means the borrower stayed in the same state.  Cells in column~1
-count defaults.
-
-\textbf{Probability matrices (heatmaps):} The count matrices converted to
-row-conditional probabilities.  Darker colours indicate higher probability.
-Comparing the Normal and Stress heatmaps visually shows how default
-probabilities rise under drought.
-
-\textbf{Pooled tab:} All transitions combined, ignoring regime --- this is the
-single-regime baseline.
-
-%------------------------------------------------------------------------------
-\subsection{Page 3 --- Regime Model Estimation}
-%------------------------------------------------------------------------------
-
-\textbf{Model parameter cards:}
 \begin{itemize}[leftmargin=1.5em]
-  \item $\kappa$ --- sharpness of the switch (higher = more abrupt).
-  \item $\gamma_0$ --- SPEI threshold value (the tipping point).
-  \item Log-likelihood --- how well the model fits the data overall (higher /
-        less negative = better).
-  \item Convergence status --- did the optimiser finish successfully?
+  \item The AgriFin brand name and purpose statement.
+  \item A three-column feature section: satellite field analysis, two-regime
+        credit migration, and IFRS~9 ECL forecasting.
+  \item A model parameters strip showing $\kappa = 1.25$, $\gamma_0 = -1.10$,
+        LGD $= 45\%$, and discount rate $= 5\%$.
+  \item Two call-to-action buttons: \textbf{Credit Officer Login} and
+        \textbf{Register as a Farmer}.
 \end{itemize}
 
-\textbf{Side-by-side matrix heatmaps ($M_{\text{normal}}$ vs.\
-$M_{\text{stress}}$):} The estimated probability matrices for each regime.
-Compare the default column (column~1, leftmost) across both: under stress the
-default probabilities should be noticeably higher.
-
-\textbf{Regime weight curve:} The S-shaped logistic curve $\omega(\gamma)$
-plotted over the range of drought index values.  The vertical dashed line
-marks $\gamma_0$ (the midpoint where $\omega = 0.5$).  Blue shading on the
-left represents drought conditions; the shaded region on the right represents
-normal/wet conditions.
-
-\textbf{LRT results card:} Likelihood Ratio Test outcome.  Shows the LR
-statistic, degrees of freedom, and p-value.  A p-value below 0.05 would mean
-the two-regime model is statistically significantly better.
-
-\textbf{SVDM card:} The structural distance between the two regime matrices,
-with a bootstrap 95\% confidence interval.  An SVDM of zero means the two
-matrices are identical.
-
 %------------------------------------------------------------------------------
-\subsection{Page 4 --- ECL Scenario Simulator}
+\subsection{Farmer Self-Registration (\texttt{/auth/signup})}
 %------------------------------------------------------------------------------
 
-\textbf{Portfolio ECL table:} One row per active borrower showing their
-current rating, loan balance, stress weight $\omega$, one-quarter default
-probability, 5-year cumulative default probability, and ECL amount.  The
-final row shows the portfolio total.
-
-\textbf{Scenario analysis table and bar chart:} Each scenario's portfolio ECL,
-its probability weight, and weighted contribution.  The bar chart shows ECL
-by scenario; a horizontal dashed line marks the probability-weighted expected
-ECL.  Taller bars on the drought scenarios show the climate sensitivity.
-
-\textbf{PD fan chart:} Cumulative default probability over 20 quarters for one
-selected rating state, plotted separately under each climate scenario.  Steeper
-curves mean faster default accumulation.
-
-\textbf{Sliders:} Allow the user to adjust LGD and the forecast horizon
-interactively and see ECL recalculate instantly.
+A farmer completes a registration form with name, email, password, phone,
+national ID, district, and primary activity.  On success the account is
+created with role \texttt{BORROWER} and the farmer is redirected to onboarding.
 
 %------------------------------------------------------------------------------
-\subsection{Page 5 --- Backtesting Metrics}
+\subsection{Farmer Onboarding (\texttt{/borrower/onboarding})}
 %------------------------------------------------------------------------------
 
-\textbf{Model comparison table:} AUC and Brier Score for both the two-regime
-and single-regime models side by side.  An improvement in AUC and a reduction
-in Brier Score confirm the two-regime model is better.
+The first screen a new farmer sees after registration.  It presents an
+interactive satellite map (Leaflet + ESRI World Imagery) with a polygon
+drawing tool.  The farmer:
 
-\textbf{ROC curves:} Two curves on the same chart --- one for each model.  A
-curve closer to the top-left corner is better (higher true-positive rate at
-low false-positive rate).  The diagonal line represents random guessing.
+\begin{enumerate}
+  \item Names the field and selects a crop type.
+  \item Enters coordinates to fly the map to their location.
+  \item Draws the field boundary as a polygon.
+  \item Clicks \textbf{Save \& Analyse}.
+\end{enumerate}
 
-\textbf{Regime breakdown metrics:} AUC computed separately for normal-regime
-and stress-regime transitions, showing whether the model performs better under
-one condition than the other.
+The system then:
+
+\begin{enumerate}
+  \item Saves the field (area calculated via Shoelace formula, location
+        reverse-geocoded via Nominatim).
+  \item Fetches 14-day temperature and rainfall from the Open-Meteo forecast
+        API for the polygon centroid.
+  \item Fetches 36+ months of daily historical temperature and rainfall from
+        the Open-Meteo archive API.
+  \item Computes SPEI-3 via the Thornthwaite PET method and an empirical
+        cumulative distribution function --- the same methodology as
+        Vicente-Serrano et al.\ (2010).
+  \item Derives the agricultural health score (0--100) and agronomic
+        recommendations.
+  \item Displays the SPEI value, WMO drought classification, and agri score.
+\end{enumerate}
+
+%------------------------------------------------------------------------------
+\subsection{Farmer Dashboard (\texttt{/borrower/dashboard})}
+%------------------------------------------------------------------------------
+
+The farmer's home screen after login.  Four areas:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{My Loan} --- loan reference, credit standing (plain language),
+        outstanding balance, loan status, and a 12-month credit exposure
+        estimate if an ECL has been computed.
+  \item \textbf{Drought Index (SPEI)} --- the SPEI-3 value with WMO label
+        (e.g.\ ``Moderate Drought'') and a plain-language explanation.
+        Shows which drought classification band applies using colour coding.
+  \item \textbf{Farm Health} --- agri score, NDVI, 14-day rainfall,
+        temperature, and the date of last analysis.
+  \item \textbf{Recommendations} --- plain-language agronomic advice derived
+        from the rule-based engine.
+\end{itemize}
+
+If no field has been set up, a banner prompts the farmer to complete onboarding.
+
+%------------------------------------------------------------------------------
+\subsection{Farmer Field Page (\texttt{/borrower/field})}
+%------------------------------------------------------------------------------
+
+Detailed field view showing the polygon on a satellite map alongside SPEI,
+agri score, NDVI metrics, and recommendations.  A \textbf{Re-analyse} button
+repeats the full SPEI and satellite data fetch for the same polygon, updating
+all stored values.
+
+%------------------------------------------------------------------------------
+\subsection{Farmer Report (\texttt{/borrower/report})}
+%------------------------------------------------------------------------------
+
+A print-ready document with six sections:
+
+\begin{enumerate}
+  \item \textbf{My Details} --- name, national ID, district, activity, phone,
+        member-since date.
+  \item \textbf{My Loan} --- reference, credit standing, balance, status,
+        disbursement date, number of payment records.
+  \item \textbf{Climate \& Weather} (shown only when data exists) --- SPEI-3
+        value, 14-day rainfall, average temperature, and a plain-language
+        drought description.  Hidden if no field analysis has been run.
+  \item \textbf{Farm Health} --- agri score, NDVI, trend, rainfall, temperature,
+        water-stress flag.
+  \item \textbf{Credit Exposure Estimate} --- 12-month and lifetime ECL in
+        plain language, with a disclaimer that these are IFRS~9 provisions, not
+        amounts owed.
+  \item \textbf{Recommendations} --- agronomic advice list.
+\end{enumerate}
+
+No raw model parameters ($\kappa$, $\gamma_0$, $\omega$, PD) are shown to
+the farmer.  A \textbf{Save as PDF} button triggers the browser print dialog.
+
+%------------------------------------------------------------------------------
+\subsection{Admin Dashboard (\texttt{/admin/dashboard})}
+%------------------------------------------------------------------------------
+
+The credit officer's home screen.  Four summary cards show total borrowers,
+total EAD, 1-year portfolio ECL, and number of defaulted loans.  Below them
+is the active loan book table with one row per loan showing:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item Borrower name and district.
+  \item Loan reference and current credit rating (1--5).
+  \item Exposure at Default (EAD).
+  \item Regime badge --- Normal / Moderate Stress / Drought Stress, derived
+        from $\omega(\gamma)$.
+  \item One-quarter PD and 1-year ECL.
+  \item IFRS~9 stage (Stage 1 / Stage 2 / Stage 3).
+\end{itemize}
+
+Navigation links to the Portfolio page and a \textbf{Register Borrower} button.
+
+%------------------------------------------------------------------------------
+\subsection{Admin Portfolio Page (\texttt{/admin/portfolio})}
+%------------------------------------------------------------------------------
+
+Portfolio-wide risk analytics:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item ECL by IFRS~9 scenario (bar chart: baseline, moderate drought, severe
+        drought, wet recovery) with probability weights and the expected ECL
+        marked.
+  \item Regime breakdown (how many loans are in Normal / Moderate / Stress
+        regime).
+  \item Rating distribution across the portfolio.
+  \item Full loan table with $\gamma$, $\omega$, PD, and ECL columns.
+\end{itemize}
+
+%------------------------------------------------------------------------------
+\subsection{Admin Borrower Detail (\texttt{/admin/borrowers/[id]})}
+%------------------------------------------------------------------------------
+
+Three summary cards at the top:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Profile} --- name, national ID, district, primary activity,
+        phone, registration date.
+  \item \textbf{Credit Risk (Latest)} --- current rating, IFRS~9 stage, EAD,
+        regime weight $\omega(\gamma)$, one-quarter PD, 1-year ECL, 5-year ECL.
+  \item \textbf{Agricultural Signal} --- SPEI-3 $\gamma$, agri score (0--100),
+        mean NDVI, 14-day rainfall, average temperature.  A
+        \textbf{View Full Field Details} link opens the read-only field page.
+        If the farmer has not yet set up their field, a plain message says so.
+\end{itemize}
+
+Below the cards: the loan history table and the rating observation timeline for
+the most recent loan.
+
+\begin{infobox}
+  \textbf{Admin cannot create or analyse fields.}  Field boundaries and
+  satellite analyses are created exclusively by the farmer through the
+  self-service onboarding and re-analyse flows.  The admin reads the data the
+  farmer has produced --- they cannot modify it.
+\end{infobox}
+
+%------------------------------------------------------------------------------
+\subsection{Admin Field View (\texttt{/admin/fields/[fieldId]/analyse})}
+%------------------------------------------------------------------------------
+
+A read-only view of the farmer's latest field analysis.  Displays:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item Four metric cards: agri score, SPEI-3 $\gamma$ (with regime weight
+        $\omega$), 14-day rainfall, and average temperature.
+  \item Vegetation signal detail: mean NDVI, NDVI trend, health status, and
+        analysis timestamp.
+  \item ECL forecast: one-quarter PD, 1-year ECL, 5-year ECL, and the four
+        IFRS~9 scenario breakdown.
+  \item Agronomic recommendations.
+\end{itemize}
+
+If the farmer has not yet run an analysis the page shows a clear message
+rather than empty data.
+
+%------------------------------------------------------------------------------
+\subsection{Admin Loan Management}
+%------------------------------------------------------------------------------
+
+\textbf{\texttt{/admin/loans/new}} --- Creates a new loan for a borrower.
+Fields: loan reference, initial credit rating, loan amount (EAD), disbursement
+date, and IFRS~9 stage.  On save the ECL engine runs immediately using the
+borrower's most recent SPEI value.
+
+\textbf{\texttt{/admin/loans/[id]}} --- Loan detail page showing the ECL
+summary and the full rating observation history table.
+
+\textbf{\texttt{/admin/loans/[id]/add-observation}} --- Adds a quarterly
+rating observation: period label (e.g.\ \texttt{2024Q4}), date, credit rating,
+default flag, $\gamma$ (SPEI value), and outstanding balance.  After saving
+the ECL engine re-runs for the updated $\gamma$.
+
+%------------------------------------------------------------------------------
+\subsection{Admin Borrower Report (\texttt{/admin/borrowers/[id]/report})}
+%------------------------------------------------------------------------------
+
+A print-ready six-section IFRS~9 report for the credit officer:
+
+\begin{enumerate}
+  \item Borrower and loan summary (profile fields, loan reference, rating,
+        EAD, stage, disbursement date).
+  \item Climate and drought (SPEI-3 $\gamma$, WMO label, regime weight
+        $\omega$, drought stress interpretation).
+  \item Agricultural health (agri score, NDVI, trend, health status, rainfall,
+        temperature, water-stress and disease-risk flags).
+  \item Credit risk metrics (one-quarter PD, 1-year ECL, 5-year ECL).
+  \item IFRS~9 scenario analysis (four scenario ECL values with probability
+        weights, expected ECL).
+  \item Recommendations (agronomic advice from the rule-based engine).
+\end{enumerate}
+
+Technical model parameters are shown on this report because it is intended for
+the credit officer, not the farmer.
 
 \newpage
 %==============================================================================
@@ -580,9 +716,9 @@ All 82 tests run in under~3 seconds.
 
 \subsection{How to Run the Tests}
 
-\textbf{Step 1 --- Open a terminal and navigate to the prototype folder:}
+\textbf{Step 1 --- Open a terminal and navigate to the tests folder:}
 \begin{lstlisting}[language=bash, numbers=none]
-cd /path/to/physical-climate-risk/prototype
+cd /path/to/physical-climate-risk/tests
 \end{lstlisting}
 
 \textbf{Step 2 --- Run all tests with \texttt{uv}:}
@@ -1036,6 +1172,7 @@ if __name__ == "__main__":
 \newpage
 %==============================================================================
 \section{Quick Reference}
+\label{sec:quickref}
 %==============================================================================
 
 \begin{center}
@@ -1043,10 +1180,13 @@ if __name__ == "__main__":
   \toprule
   Task & Command \\
   \midrule
-  Run all tests       & \texttt{uv run pytest tests/ -v} \\
-  Run one test file   & \texttt{uv run pytest tests/test\_ingestion.py -v} \\
-  Start the app       & \texttt{uv run streamlit run app.py} \\
-  Compile this PDF    & \texttt{pdflatex explanation.tex} \\
+  Run all pipeline tests     & \texttt{cd tests \&\& uv run pytest tests/ -v} \\
+  Run one test file          & \texttt{uv run pytest tests/test\_ingestion.py -v} \\
+  Start the web app          & \texttt{cd application \&\& pnpm dev} \\
+  Seed admin + matrices      & \texttt{pnpm tsx prisma/seed.ts} \\
+  Run DB migrations          & \texttt{pnpm prisma migrate dev} \\
+  Compile this PDF           & \texttt{pdflatex explanation.tex} \\
+  Compile the dissertation   & \texttt{pdflatex document/document.tex} \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1055,20 +1195,25 @@ if __name__ == "__main__":
 
 \begin{infobox}
   \textbf{Project file structure summary:}\\[4pt]
-  \texttt{prototype/}\\
-  \quad \texttt{app.py} --- Streamlit application (5 pages)\\
-  \quad \texttt{config.py} --- All constants and hyperparameters\\
-  \quad \texttt{data/jay\_dataset.csv} --- The MFI panel dataset\\
-  \quad \texttt{src/ingestion.py} --- Stage 1: data loading\\
-  \quad \texttt{src/transitions.py} --- Stage 2: transition extraction\\
-  \quad \texttt{src/estimation.py} --- Stage 3: model estimation\\
-  \quad \texttt{src/forecasting.py} --- Stage 4: ECL calculation\\
-  \quad \texttt{src/validation.py} --- Stage 5: backtesting\\
-  \quad \texttt{src/svdm.py} --- SVDM and bootstrap confidence intervals\\
-  \quad \texttt{src/plots.py} --- All charts and figures\\
-  \quad \texttt{tests/} --- Unit tests (one file per stage)\\[4pt]
-  \texttt{document/document.tex} --- Full research dissertation (LaTeX)\\
-  \texttt{explanation/explanation.tex} --- This document
+  \texttt{physical-climate-risk/}\\
+  \quad \texttt{jay\_dataset.csv} --- MFI panel dataset (6 borrowers, 59 obs)\\[4pt]
+  \quad \texttt{tests/} --- Python ECL pipeline\\
+  \quad\quad \texttt{src/ingestion.py} --- Stage 1: data loading\\
+  \quad\quad \texttt{src/transitions.py} --- Stage 2: transition extraction\\
+  \quad\quad \texttt{src/estimation.py} --- Stage 3: model estimation\\
+  \quad\quad \texttt{src/forecasting.py} --- Stage 4: ECL calculation\\
+  \quad\quad \texttt{src/validation.py} --- Stage 5: backtesting\\
+  \quad\quad \texttt{tests/} --- Unit tests (one file per stage, 82 total)\\[4pt]
+  \quad \texttt{application/} --- Next.js web prototype (AgriFin Risk Monitor)\\
+  \quad\quad \texttt{app/admin/} --- Credit officer pages (dashboard, borrowers, loans, portfolio)\\
+  \quad\quad \texttt{app/borrower/} --- Farmer pages (dashboard, onboarding, field, report)\\
+  \quad\quad \texttt{lib/ecl/engine.ts} --- Two-Regime ECL computation (TypeScript)\\
+  \quad\quad \texttt{lib/gee/spei.ts} --- SPEI-3 implementation (Open-Meteo archive)\\
+  \quad\quad \texttt{prisma/schema.prisma} --- Database schema\\
+  \quad\quad \texttt{prisma/seed.ts} --- Admin account + migration matrices\\
+  \quad\quad \texttt{APP\_STRUCTURE.md} --- Full route map and architecture notes\\[4pt]
+  \quad \texttt{document/document.tex} --- Full research dissertation (LaTeX)\\
+  \quad \texttt{explanation/explanation.tex} --- This document
 \end{infobox}
 
 \end{document}
