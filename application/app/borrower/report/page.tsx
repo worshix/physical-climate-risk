@@ -7,12 +7,23 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Leaf } from "lucide-react";
 import { PrintButton } from "@/components/PrintButton";
 
-// Farmer-friendly language — no raw model parameters exposed
-function climateStatus(omega: number) {
-  if (omega >= 0.7) return { label: "Drought Stress",    color: "bg-red-100 text-red-700",     description: "Your area is under significant drought stress. This is being factored into your credit assessment." };
-  if (omega >= 0.4) return { label: "Moderate Dry Spell", color: "bg-amber-100 text-amber-700", description: "Moderate dry-season conditions are present. Your credit officer is monitoring this closely." };
-  if (omega >= 0.2) return { label: "Slightly Dry",       color: "bg-yellow-100 text-yellow-700", description: "Conditions are slightly drier than average but within acceptable range." };
-  return              { label: "Good Conditions",          color: "bg-emerald-100 text-emerald-700", description: "Climate conditions in your region are favourable." };
+// Farmer-friendly climate status from SPEI-3 gamma
+function climateFromGamma(gamma: number) {
+  if (gamma >= 1.5)  return { label: "Very Wet",          color: "bg-blue-100 text-blue-700",      description: "Your region is receiving well-above-normal rainfall. Good conditions for crops." };
+  if (gamma >= 1.0)  return { label: "Moderately Wet",    color: "bg-blue-100 text-blue-700",      description: "Above-normal precipitation. Favourable for agriculture." };
+  if (gamma >= 0.0)  return { label: "Good Conditions",   color: "bg-emerald-100 text-emerald-700", description: "Rainfall and temperature in your area are near normal." };
+  if (gamma >= -1.0) return { label: "Slightly Dry",      color: "bg-yellow-100 text-yellow-700",  description: "Conditions are mildly drier than normal. Monitor your field moisture." };
+  if (gamma >= -1.5) return { label: "Moderate Drought",  color: "bg-amber-100 text-amber-700",    description: "Moderate drought stress in your area. This is being factored into your credit assessment." };
+  if (gamma >= -2.0) return { label: "Severe Drought",    color: "bg-red-100 text-red-700",        description: "Significant drought conditions. Your credit officer has been alerted." };
+  return               { label: "Extreme Drought",        color: "bg-red-200 text-red-800",        description: "Extreme drought conditions. Please contact your credit officer immediately." };
+}
+
+// Fallback from ECL regime weight when no SPEI available
+function climateFromOmega(omega: number) {
+  if (omega >= 0.7) return { label: "Drought Stress",     color: "bg-red-100 text-red-700",        description: "Your area is under significant drought stress. This is being factored into your credit assessment." };
+  if (omega >= 0.4) return { label: "Moderate Dry Spell", color: "bg-amber-100 text-amber-700",    description: "Moderate dry-season conditions are present. Your credit officer is monitoring this closely." };
+  if (omega >= 0.2) return { label: "Slightly Dry",       color: "bg-yellow-100 text-yellow-700",  description: "Conditions are slightly drier than average but within acceptable range." };
+  return               { label: "Good Conditions",        color: "bg-emerald-100 text-emerald-700", description: "Climate conditions in your region are favourable." };
 }
 
 function ratingLabel(r: number) {
@@ -56,7 +67,11 @@ export default async function BorrowerReportPage() {
   const loan     = borrower.loans[0] ?? null;
   const ecl      = loan?.eclForecasts[0] ?? null;
   const analysis = borrower.fields[0]?.analyses[0] ?? null;
-  const climate  = ecl ? climateStatus(ecl.regimeWeight) : null;
+  const climate  = analysis !== null
+    ? climateFromGamma(analysis.gamma)
+    : ecl !== null
+      ? climateFromOmega(ecl.regimeWeight)
+      : null;
 
   let recs: string[] = [];
   if (analysis?.recommendations) {
@@ -134,23 +149,29 @@ export default async function BorrowerReportPage() {
 
         <hr className="border-slate-100" />
 
-        {/* Section 3: Climate & Weather */}
-        <section className="space-y-4">
-          <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2">Climate & Weather Conditions</h2>
-          {climate ? (
-            <div className="space-y-3">
-              <Badge className={`${climate.color} border-none text-sm px-3 py-1`}>{climate.label}</Badge>
-              <p className="text-slate-700 leading-relaxed">{climate.description}</p>
-              <p className="text-xs text-slate-400">
-                Our system uses satellite and weather data to monitor climate conditions in your district. This information helps your credit officer assess loan risk under IFRS 9 international accounting standards.
-              </p>
-            </div>
-          ) : (
-            <p className="text-slate-400 italic">No climate data available yet.</p>
-          )}
-        </section>
-
-        <hr className="border-slate-100" />
+        {/* Section 3: Climate & Weather — only shown when data is available */}
+        {climate && (
+          <>
+            <section className="space-y-4">
+              <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2">Climate & Weather Conditions</h2>
+              <div className="space-y-3">
+                <Badge className={`${climate.color} border-none text-sm px-3 py-1`}>{climate.label}</Badge>
+                {analysis && (
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-1">
+                    <RowItem label="SPEI-3 Drought Index" value={analysis.gamma.toFixed(2)} mono />
+                    <RowItem label="14-Day Rainfall"      value={`${analysis.totalRainfall.toFixed(1)} mm`} />
+                    <RowItem label="Avg Temperature"      value={`${analysis.avgTemperature.toFixed(1)} °C`} />
+                  </div>
+                )}
+                <p className="text-slate-700 leading-relaxed">{climate.description}</p>
+                <p className="text-xs text-slate-400">
+                  Our system uses satellite and weather data to monitor climate conditions in your district. This information helps your credit officer assess loan risk under IFRS 9 international accounting standards.
+                </p>
+              </div>
+            </section>
+            <hr className="border-slate-100" />
+          </>
+        )}
 
         {/* Section 4: Farm Health */}
         <section className="space-y-4">
