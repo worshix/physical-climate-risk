@@ -5,8 +5,8 @@ import path from "path";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-// Resolve database path - use absolute path
-const dbPath = path.join(process.cwd(), "dev.db");
+// Resolve database path - use absolute path with file: prefix
+const dbPath = `file:${path.join(process.cwd(), "dev.db")}`;
 
 const adapter = new PrismaBetterSqlite3({ url: dbPath });
 
