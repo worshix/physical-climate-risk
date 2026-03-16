@@ -1,11 +1,6 @@
-\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
-\beamer@sectionintoc {2}{Background}{4}{0}{2}
-\beamer@sectionintoc {3}{Statement of the Problem}{5}{0}{3}
-\beamer@sectionintoc {4}{Research Objectives \& Questions}{6}{0}{4}
-\beamer@sectionintoc {5}{Research Hypothesis}{8}{0}{5}
-\beamer@sectionintoc {6}{Literature Review}{9}{0}{6}
-\beamer@sectionintoc {7}{Methodology}{11}{0}{7}
-\beamer@sectionintoc {8}{Results}{13}{0}{8}
-\beamer@sectionintoc {9}{Hypothesis Assessment}{16}{0}{9}
-\beamer@sectionintoc {10}{Conclusions \& Recommendations}{17}{0}{10}
-\beamer@sectionintoc {11}{References}{19}{0}{11}
+\beamer@sectionintoc {1}{Chapter 1: Introduction}{3}{0}{1}
+\beamer@sectionintoc {2}{Literature Review}{7}{0}{2}
+\beamer@sectionintoc {3}{Chapter 3: Research Methodology}{9}{0}{3}
+\beamer@sectionintoc {4}{Chapter 4: Data Analysis \& Results}{14}{0}{4}
+\beamer@sectionintoc {5}{Chapter 5: Conclusions \& Recommendations}{21}{0}{5}
+\beamer@sectionintoc {6}{References}{24}{0}{6}
