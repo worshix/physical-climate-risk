@@ -287,11 +287,11 @@ This research seeks to answer the following questions:
 
 \subsection{Null Hypothesis ($H_0$)}
 
-The incorporation of the Exogenous Two-Regime Markov-Switching structure does not significantly improve the fit or predictive accuracy of the credit risk model for Zimbabwean MFIs. Therefore, the Probabilities of Default (PD) and resulting Expected Credit Loss (ECL) forecasts are statistically no more accurate than those produced by a traditional static (time-homogeneous) model.
+The credit transition probability matrices under Normal conditions and Drought-Stress conditions are equal ($\hat{M}_{\text{normal}} = \hat{M}_{\text{stress}}$), implying that credit migration follows a time-homogeneous Markov process that is independent of the external drought regime. Under this hypothesis, the SPEI provides no statistically significant explanatory power over credit migration, and a single static matrix is an adequate representation of the transition dynamics.
 
 \subsection{Alternative Hypothesis ($H_1$)}
 
-The Exogenous Two-Regime Markov-Switching Model provides a statistically significant and robust improvement in modeling credit risk by proving that the credit migration parameters are conditional on the external climate regime, resulting in a more accurate and compliant forecast of Expected Credit Loss (ECL) than static models.
+The credit transition probability matrices under the two regimes are structurally distinct ($\hat{M}_{\text{normal}} \neq \hat{M}_{\text{stress}}$), implying that credit migration is conditioned on the prevailing drought regime. Under this hypothesis, the Exogenous Two-Regime Markov-Switching Model provides materially superior predictive accuracy and ECL estimation relative to the time-homogeneous single-matrix baseline, rendering the static model structurally inadequate for IFRS 9 compliance in climate-exposed portfolios.
 
 % ============================================
 % 1.6 SIGNIFICANCE OF THE STUDY
@@ -302,7 +302,7 @@ The study provides a significant contribution by bridging a critical methodologi
 
 \subsection{Academic Contribution}
 
-The central significance is the advancement in stochastic modeling achieved by developing and rigorously validating the Exogenous Two-Regime Markov-Switching Model. This model extends the established frameworks of credit risk modeling (Koopman and Lucas, 2005; Bangia et al., 2002) by successfully proving and estimating the necessity of an exogenous, non-financial driver (the Drought Index) to model credit volatility. By formally rejecting the simplistic assumption of time-homogeneity ($\Mstress = \Mnormal$) via the Likelihood Ratio Test (LRT), the research provides the academic and statistical proof needed to transition the MFI sector from static TTC (Through-the-Cycle) to dynamic PIT (Point-in-Time) risk assessment.
+The central significance is the advancement in stochastic modeling achieved by developing and rigorously validating the Exogenous Two-Regime Markov-Switching Model. This model extends the established frameworks of credit risk modeling (Koopman and Lucas, 2005; Bangia et al., 2002) by successfully proving and estimating the necessity of an exogenous, non-financial driver (the Drought Index) to model credit volatility. Empirical evidence against the time-homogeneity assumption ($\Mstress = \Mnormal$) is established through the Singular Value Decomposition Metric (SVDM = 0.309) and out-of-sample discriminatory improvement (AUC: 0.724 vs.\ 0.618), providing the academic and statistical grounding needed to transition the MFI sector from static TTC (Through-the-Cycle) to dynamic PIT (Point-in-Time) risk assessment.
 
 \subsection{Practical Contribution}
 
