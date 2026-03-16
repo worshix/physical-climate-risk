@@ -5,6 +5,22 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{patterns,calc}
+\pgfplotsset{
+    beamer axis/.style={
+        width=0.92\textwidth,
+        height=5.8cm,
+        grid=major,
+        grid style={line width=0.3pt, draw=gray!30},
+        title style={font=\small\bfseries},
+        label style={font=\footnotesize},
+        tick label style={font=\scriptsize},
+        legend style={font=\scriptsize},
+    }
+}
 
 % ---- Title info ----------------------------------------------------------------
 \title[Climate Risk \& ECL]{Drought-Adjusted Regime-Switching Expected Credit Loss:\\
@@ -299,6 +315,54 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
 \end{frame}
 
 \begin{frame}
+    \frametitle{SPEI Time Series: 2014--2024}
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        beamer axis,
+        height=6.0cm,
+        xlabel={Year},
+        ylabel={SPEI ($\gamma$)},
+        xmin=2014, xmax=2025,
+        ymin=-2.3, ymax=1.5,
+        xtick={2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025},
+        xticklabel style={rotate=35, anchor=east, font=\scriptsize},
+        ytick={-2,-1.5,-1,-0.5,0,0.5,1,1.5},
+        legend pos=north east,
+    ]
+    % Stress-regime shading
+    \addplot[fill=red!18, draw=none, forget plot] coordinates
+        {(2015,1.5)(2016.5,1.5)(2016.5,-2.3)(2015,-2.3)} \closedcycle;
+    \addplot[fill=red!18, draw=none, forget plot] coordinates
+        {(2019,1.5)(2019.75,1.5)(2019.75,-2.3)(2019,-2.3)} \closedcycle;
+    \addplot[fill=red!18, draw=none, forget plot] coordinates
+        {(2022.75,1.5)(2024.5,1.5)(2024.5,-2.3)(2022.75,-2.3)} \closedcycle;
+    % Drought threshold
+    \addplot[thick, red, dashed, forget plot] coordinates {(2014,-1)(2025,-1)};
+    \node[anchor=west, font=\scriptsize, text=red] at (axis cs:2024.2,-0.8)
+        {$\gamma_0{=}{-1.0}$};
+    % SPEI series
+    \addplot[thick, blue!80!black, mark=*, mark size=1.2pt] coordinates {
+        (2014.0, 0.61)(2014.25, 0.84)(2014.5, -0.18)(2014.75, -0.85)
+        (2015.0,-1.42)(2015.25,-1.68)(2015.5,-1.55)(2015.75,-1.22)
+        (2016.0,-1.38)(2016.25,-1.15)(2016.5,-0.72)(2016.75,-0.45)
+        (2017.0, 0.32)(2017.25, 0.78)(2017.5, 1.05)(2017.75, 0.82)
+        (2018.0, 0.95)(2018.25, 1.22)(2018.5, 0.88)(2018.75,-0.65)
+        (2019.0,-1.35)(2019.25,-1.58)(2019.5,-1.42)(2019.75,-0.95)
+        (2020.0, 0.18)(2020.25, 0.42)(2020.5, 0.68)(2020.75, 0.51)
+        (2021.0, 0.75)(2021.25, 0.98)(2021.5, 1.12)(2021.75, 0.89)
+        (2022.0, 0.65)(2022.25, 0.31)(2022.5,-0.45)(2022.75,-0.82)
+        (2023.0,-1.28)(2023.25,-1.65)(2023.5,-1.92)(2023.75,-1.78)
+        (2024.0,-1.45)(2024.25,-1.32)(2024.5,-0.85)(2024.75,-0.45)
+    };
+    \legend{SPEI ($\gamma$)}
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+    {\scriptsize Red-shaded bands = Drought-Stress regime ($\gamma<-1.0$): 2015--16 El Ni\~{n}o, 2019 mid-cycle, 2022--24 compound drought.}
+\end{frame}
+
+\begin{frame}
     \frametitle{Objective 2 --- Estimated Migration Matrices}
     \vspace{0.1em}
     {\ts
@@ -357,6 +421,38 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
     \end{alertblock}
     \vspace{0.2em}
     \textbf{SVDM = 0.309} (95\% bootstrap CI: [0.124, 0.487]) --- CI excludes zero, statistically confirming structural divergence at 95\% level.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Key Transition Probabilities: Normal vs.\ Stress}
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        beamer axis,
+        ybar, bar width=10pt,
+        ylabel={Transition Probability},
+        symbolic x coords={$m_{22}$,$m_{23}$,$m_{32}$,$m_{33}$,$m_{34}$,$m_{43}$,$m_{44}$},
+        xtick=data,
+        xticklabel style={font=\footnotesize},
+        ymin=0, ymax=1.05,
+        ytick={0,0.2,0.4,0.6,0.8,1.0},
+        yticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+        enlarge x limits=0.1,
+        nodes near coords,
+        every node near coord/.append style={font=\tiny, rotate=90, anchor=west},
+        legend pos=north east,
+    ]
+    \addplot[fill=green!55, draw=green!40!black] coordinates
+        {($m_{22}$,0.500)($m_{23}$,0.333)($m_{32}$,0.100)
+         ($m_{33}$,0.700)($m_{34}$,0.200)($m_{43}$,0.200)($m_{44}$,0.800)};
+    \addplot[fill=red!55, draw=red!40!black] coordinates
+        {($m_{22}$,0.813)($m_{23}$,0.063)($m_{32}$,0.750)
+         ($m_{33}$,0.250)($m_{34}$,0.000)($m_{43}$,0.333)($m_{44}$,0.333)};
+    \legend{$\hat{M}_{\text{normal}}$, $\hat{M}_{\text{stress}}$}
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+    {\scriptsize Drought collapses upgrade paths ($m_{34}$: 20\%$\to$0\%) and amplifies downgrade pressure ($m_{32}$: 10\%$\to$75\%).}
 \end{frame}
 
 \begin{frame}
@@ -421,6 +517,61 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
 \end{frame}
 
 \begin{frame}
+    \frametitle{Out-of-Sample Model Performance}
+    \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=0.96\linewidth, height=5.0cm,
+        ybar, bar width=18pt,
+        title={AUC (higher = better)},
+        title style={font=\small\bfseries},
+        symbolic x coords={Single,Two-regime},
+        xtick=data,
+        xticklabel style={font=\footnotesize},
+        ymin=0.55, ymax=0.80,
+        ytick={0.55,0.60,0.65,0.70,0.75,0.80},
+        tick label style={font=\scriptsize},
+        nodes near coords, every node near coord/.append style={font=\footnotesize},
+        enlarge x limits=0.4,
+    ]
+    % Industry threshold line
+    \addplot[forget plot, red, dashed, thick] coordinates {(Single,0.70)(Two-regime,0.70)};
+    \addplot[fill=gray!50, draw=gray!70] coordinates {(Single,0.618)};
+    \addplot[fill=blue!60, draw=blue!70] coordinates {(Two-regime,0.724)};
+    \end{axis}
+    \end{tikzpicture}\\
+    {\scriptsize Red dashed line = 0.70 industry threshold}
+    \end{center}
+    \column{0.5\textwidth}
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=0.96\linewidth, height=5.0cm,
+        ybar, bar width=18pt,
+        title={Brier Score (lower = better)},
+        title style={font=\small\bfseries},
+        symbolic x coords={Single,Two-regime},
+        xtick=data,
+        xticklabel style={font=\footnotesize},
+        ymin=0, ymax=0.055,
+        ytick={0,0.01,0.02,0.03,0.04,0.05},
+        tick label style={font=\scriptsize},
+        nodes near coords, every node near coord/.append style={font=\footnotesize},
+        enlarge x limits=0.4,
+    ]
+    \addplot[fill=gray!50, draw=gray!70] coordinates {(Single,0.041)};
+    \addplot[fill=blue!60, draw=blue!70] coordinates {(Two-regime,0.028)};
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+    \end{columns}
+    \vspace{0.3em}
+    \centering{\footnotesize Two-regime model: AUC $+$17.2\%\ \ |\ \ Brier Score $-$31.7\%}
+\end{frame}
+
+\begin{frame}
     \frametitle{Objective 4 --- ECL Estimation: Scenario Analysis}
     \vspace{0.1em}
     5-year lifetime ECL per \$1,000 lent (LGD = 45\%, portfolio EAD = \$3,235):
@@ -444,6 +595,41 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
     \begin{alertblock}{Capital Adequacy Implication}
         Static model \textbf{under-provisions by 36\% on average} (\$421 vs \$659) and by \textbf{67\% under severe drought} (\$684 vs \$1,143) --- a direct threat to solvency under IFRS 9.
     \end{alertblock}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Portfolio ECL by Climate Scenario}
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        beamer axis,
+        height=6.2cm,
+        ybar, bar width=11pt,
+        ylabel={Expected Credit Loss (\$)},
+        symbolic x coords={Baseline,Moderate,Severe,Wet,Weighted,Static},
+        xtick=data,
+        xticklabel style={font=\footnotesize},
+        x tick label style={align=center},
+        ymin=0, ymax=1280,
+        ytick={0,200,400,600,800,1000,1200},
+        enlarge x limits=0.1,
+        legend pos=north west,
+        nodes near coords,
+        every node near coord/.append style={font=\tiny},
+    ]
+    \addplot[fill=blue!55, draw=blue!40!black] coordinates
+        {(Baseline,165)(Moderate,248)(Severe,387)(Wet,82)(Weighted,218)(Static,0)};
+    \addplot[fill=orange!65, draw=orange!50!black] coordinates
+        {(Baseline,498)(Moderate,712)(Severe,1143)(Wet,248)(Weighted,659)(Static,421)};
+    \legend{1-Year ECL, 5-Year ECL}
+    % Static model annotation
+    \draw[red, thick, dashed] (axis cs:Static,421) -- (axis cs:Weighted,421);
+    \node[font=\scriptsize, text=red, anchor=south] at (axis cs:Weighted,430)
+        {\textit{Static: \$421}};
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+    {\scriptsize Severe drought: 5-yr ECL = \$1,143 vs static \$684 --- a \textbf{67\% underestimation} with direct capital adequacy consequences.}
 \end{frame}
 
 % ============================================================

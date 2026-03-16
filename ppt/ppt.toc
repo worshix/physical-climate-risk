@@ -2,5 +2,5 @@
 \beamer@sectionintoc {2}{Literature Review}{7}{0}{2}
 \beamer@sectionintoc {3}{Chapter 3: Research Methodology}{9}{0}{3}
 \beamer@sectionintoc {4}{Chapter 4: Data Analysis \& Results}{14}{0}{4}
-\beamer@sectionintoc {5}{Chapter 5: Conclusions \& Recommendations}{21}{0}{5}
-\beamer@sectionintoc {6}{References}{24}{0}{6}
+\beamer@sectionintoc {5}{Chapter 5: Conclusions \& Recommendations}{25}{0}{5}
+\beamer@sectionintoc {6}{References}{28}{0}{6}
