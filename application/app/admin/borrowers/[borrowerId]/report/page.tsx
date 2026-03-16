@@ -4,7 +4,8 @@ import { getAdminSession } from "@/lib/auth";
 import { generateBorrowerReport, type BorrowerReport } from "@/lib/reports/generateBorrowerReport";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { PrintButton } from "@/components/PrintButton";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -79,14 +80,7 @@ export default async function BorrowerReportPage({
           </Link>
           <span className="text-base font-bold text-slate-900">Borrower Report — {borrower.name}</span>
         </div>
-        <Button
-          onClick={() => { if (typeof window !== "undefined") window.print(); }}
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
-          <Printer className="h-4 w-4" /> Print / Export PDF
-        </Button>
+        <PrintButton />
       </nav>
 
       <main className="max-w-4xl mx-auto px-8 py-10 space-y-10 text-sm">

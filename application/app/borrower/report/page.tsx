@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getBorrowerSession } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer, Leaf } from "lucide-react";
+import { ArrowLeft, Leaf } from "lucide-react";
+import { PrintButton } from "@/components/PrintButton";
 
 // Farmer-friendly language — no raw model parameters exposed
 function climateStatus(omega: number) {
@@ -76,14 +77,7 @@ export default async function BorrowerReportPage() {
           </Link>
           <span className="text-base font-bold text-slate-900">My Report</span>
         </div>
-        <Button
-          onClick={() => { if (typeof window !== "undefined") window.print(); }}
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
-          <Printer className="h-4 w-4" /> Save as PDF
-        </Button>
+        <PrintButton />
       </nav>
 
       <main className="max-w-3xl mx-auto px-8 py-10 space-y-10 text-sm">
