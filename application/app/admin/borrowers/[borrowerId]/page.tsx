@@ -9,7 +9,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import {
   ArrowLeft, Leaf, User, MapPin, Phone, CreditCard,
   TrendingDown, Activity, Plus, FileText, ChevronRight,
-  Briefcase,
+  Briefcase, ExternalLink,
 } from "lucide-react";
 
 function ratingBadge(rating: number) {
@@ -222,15 +222,17 @@ export default async function BorrowerDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {latestAnalysis ? (
+              {latestAnalysis && latestField ? (
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-slate-400">Agri Score</span>
-                    <span className="text-2xl font-bold text-slate-900">{latestAnalysis.agriculturalScore.toFixed(0)}<span className="text-sm text-slate-400">/100</span></span>
+                    <span className="text-2xl font-bold text-slate-900">{Math.round(latestAnalysis.agriculturalScore)}<span className="text-sm text-slate-400">/100</span></span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">γ Proxy (Drought Index)</span>
-                    <span className="font-mono text-sm">{latestAnalysis.gamma.toFixed(2)}</span>
+                    <span className="text-xs text-slate-400">SPEI-3 (γ)</span>
+                    <span className={`font-mono text-sm font-semibold ${latestAnalysis.gamma < -1 ? "text-red-600" : latestAnalysis.gamma < 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                      {latestAnalysis.gamma.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-slate-400">Mean NDVI</span>
@@ -247,20 +249,20 @@ export default async function BorrowerDetailPage({
                   <p className="text-xs text-slate-400 pt-1">
                     Last analysed {new Date(latestAnalysis.createdAt).toLocaleDateString()}
                   </p>
+                  <Link href={`/admin/fields/${latestField.id}/analyse`} className="block pt-1">
+                    <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs">
+                      <ExternalLink className="h-3.5 w-3.5" /> View Full Field Details
+                    </Button>
+                  </Link>
                 </>
+              ) : latestField ? (
+                <p className="text-xs text-slate-400 italic py-2">
+                  Field registered — farmer hasn&apos;t run analysis yet.
+                </p>
               ) : (
-                <div className="text-center py-4">
-                  <p className="text-xs text-slate-400 italic mb-3">No satellite analysis yet.</p>
-                  {latestField ? (
-                    <Link href={`/admin/fields/${latestField.id}/analyse`}>
-                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs">Run Analysis</Button>
-                    </Link>
-                  ) : (
-                    <Link href={`/admin/fields/create?borrowerId=${borrowerId}`}>
-                      <Button size="sm" variant="outline" className="text-xs">Add Field</Button>
-                    </Link>
-                  )}
-                </div>
+                <p className="text-xs text-slate-400 italic py-2">
+                  Farmer hasn&apos;t set up their farm yet.
+                </p>
               )}
             </CardContent>
           </Card>

@@ -8,6 +8,9 @@
       "Bash(touch src/__init__.py)",
       "Bash(uv add streamlit pandas numpy scipy scikit-learn matplotlib)",
       "Bash(uv run python -c \":*)"
+    ],
+    "additionalDirectories": [
+      "/home/worshix/school-projects/physical-climate-risk/application/app/api/admin/fields/[fieldId]/analyse"
     ]
   }
 }
