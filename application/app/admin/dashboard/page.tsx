@@ -97,6 +97,9 @@ export default async function AdminDashboardPage() {
           <Link href="/admin/dashboard">
             <Button variant="ghost" size="sm" className="text-slate-600">Dashboard</Button>
           </Link>
+          <Link href="/admin/portfolio">
+            <Button variant="ghost" size="sm" className="text-slate-600">Portfolio</Button>
+          </Link>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full">
             <div className="w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
               {admin?.name?.charAt(0) ?? "A"}
