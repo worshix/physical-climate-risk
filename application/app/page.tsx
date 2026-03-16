@@ -36,11 +36,18 @@ export default function LandingPage() {
             A microfinance credit risk platform for Zimbabwean MFIs. Satellite-derived drought signals
             drive a Two-Regime Markov-Switching model to compute IFRS 9–compliant Expected Credit Loss.
           </p>
-          <Link href="/auth/login">
-            <Button size="lg" className="h-14 px-8 text-lg bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
-              Credit Officer Login <ArrowRight className="h-5 w-5" />
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/auth/login">
+              <Button size="lg" className="h-14 px-8 text-lg bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+                Credit Officer Login <ArrowRight className="h-5 w-5" />
+              </Button>
+            </Link>
+            <Link href="/auth/signup">
+              <Button size="lg" variant="outline" className="h-14 px-8 text-lg gap-2">
+                Register as a Farmer <ArrowRight className="h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </section>
 
         {/* Feature cards */}

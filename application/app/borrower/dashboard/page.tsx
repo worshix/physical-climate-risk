@@ -8,31 +8,46 @@ import { Badge } from "@/components/ui/badge";
 import { LogoutButton } from "@/components/LogoutButton";
 import {
   Leaf, CreditCard, Activity, CloudSun, FileText,
-  TrendingDown, Droplets, Thermometer,
+  TrendingDown, Droplets, Thermometer, MapPin, AlertTriangle,
+  BarChart3,
 } from "lucide-react";
 
-// ── Friendly language for borrowers (no raw model values) ────────────────────
-
-function climateLabel(omega: number): { label: string; color: string; description: string } {
-  if (omega >= 0.7) return {
-    label: "Drought Stress",
-    color: "bg-red-100 text-red-700",
-    description: "Your region is experiencing significant drought conditions. This may affect crop yields and loan repayment capacity.",
+// ── SPEI / γ helpers ───────────────────────────────────────────────────────────
+function speiLabel(gamma: number): { label: string; color: string; description: string } {
+  if (gamma >= 1.5) return {
+    label: "Very Wet",
+    color: "bg-blue-100 text-blue-700",
+    description: "Your region is receiving well-above-normal rainfall. Good conditions for crops.",
   };
-  if (omega >= 0.4) return {
-    label: "Moderate Dry Spell",
-    color: "bg-amber-100 text-amber-700",
-    description: "Some dry-spell stress is present in your region. Monitor your field conditions closely.",
+  if (gamma >= 1.0) return {
+    label: "Moderately Wet",
+    color: "bg-blue-100 text-blue-700",
+    description: "Above-normal precipitation conditions. Favourable for agriculture.",
   };
-  if (omega >= 0.2) return {
-    label: "Slightly Dry",
-    color: "bg-yellow-100 text-yellow-700",
-    description: "Conditions are slightly drier than normal but manageable.",
-  };
-  return {
+  if (gamma >= 0.0) return {
     label: "Good Conditions",
     color: "bg-emerald-100 text-emerald-700",
-    description: "Weather and climate conditions in your region are favourable for agriculture.",
+    description: "Rainfall and temperature conditions in your area are near normal.",
+  };
+  if (gamma >= -1.0) return {
+    label: "Slightly Dry",
+    color: "bg-yellow-100 text-yellow-700",
+    description: "Conditions are mildly drier than normal. Monitor your field moisture.",
+  };
+  if (gamma >= -1.5) return {
+    label: "Moderate Drought",
+    color: "bg-amber-100 text-amber-700",
+    description: "Moderate drought stress in your area. This is being factored into your credit assessment.",
+  };
+  if (gamma >= -2.0) return {
+    label: "Severe Drought",
+    color: "bg-red-100 text-red-700",
+    description: "Significant drought conditions. Your MFI credit officer has been alerted.",
+  };
+  return {
+    label: "Extreme Drought",
+    color: "bg-red-200 text-red-800",
+    description: "Extreme drought conditions. Please contact your credit officer immediately.",
   };
 }
 
@@ -55,6 +70,7 @@ function scoreLabel(score: number): string {
   return "Needs Attention";
 }
 
+// ── Page ───────────────────────────────────────────────────────────────────────
 export default async function BorrowerDashboardPage() {
   const session = await getBorrowerSession();
   if (!session) redirect("/auth/login");
@@ -74,6 +90,7 @@ export default async function BorrowerDashboardPage() {
         include: {
           analyses: { orderBy: { createdAt: "desc" }, take: 1 },
         },
+        orderBy: { createdAt: "desc" },
         take: 1,
       },
     },
@@ -81,16 +98,21 @@ export default async function BorrowerDashboardPage() {
 
   if (!borrower) redirect("/auth/login");
 
-  const loan = borrower.loans[0] ?? null;
-  const ecl  = loan?.eclForecasts[0] ?? null;
-  const analysis = borrower.fields[0]?.analyses[0] ?? null;
+  const loan     = borrower.loans[0] ?? null;
+  const ecl      = loan?.eclForecasts[0] ?? null;
+  const field    = borrower.fields[0] ?? null;
+  const analysis = field?.analyses[0] ?? null;
 
-  const climate = ecl ? climateLabel(ecl.regimeWeight) : null;
+  // γ from analysis (real SPEI) or from ECL forecast
+  const gamma  = analysis?.gamma ?? (ecl ? null : null);
+  const climate = gamma !== null ? speiLabel(gamma) : null;
 
   let recs: string[] = [];
   if (analysis?.recommendations) {
     try { recs = JSON.parse(analysis.recommendations); } catch { /* ignore */ }
   }
+
+  const hasField = field !== null;
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -102,7 +124,14 @@ export default async function BorrowerDashboardPage() {
           </div>
           <span className="text-lg font-bold text-slate-900 tracking-tight">AgriFin</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {hasField && (
+            <Link href="/borrower/field">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                <MapPin className="h-4 w-4" /> My Farm
+              </Button>
+            </Link>
+          )}
           <Link href="/borrower/report">
             <Button variant="outline" size="sm" className="gap-1.5 text-xs">
               <FileText className="h-4 w-4" /> My Report
@@ -125,6 +154,23 @@ export default async function BorrowerDashboardPage() {
             {borrower.district ? `${borrower.district} · ` : ""}{borrower.primaryActivity ?? "AgriFin Borrower"}
           </p>
         </div>
+
+        {/* ── Set up farm CTA (if no field) ────────────────────────────────── */}
+        {!hasField && (
+          <div className="rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-6 flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="font-bold text-emerald-800">Set up your farm to get started</p>
+              <p className="text-sm text-emerald-700">
+                Draw your field boundary to receive your SPEI drought index, farm health score, and personalised recommendations.
+              </p>
+            </div>
+            <Link href="/borrower/onboarding">
+              <Button className="bg-emerald-600 hover:bg-emerald-700 whitespace-nowrap ml-4">
+                Set Up Farm
+              </Button>
+            </Link>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* ── My Loan ── */}
@@ -165,7 +211,7 @@ export default async function BorrowerDashboardPage() {
                         <span className="font-bold text-red-600">${ecl.ecl1Year.toFixed(2)}</span>
                       </div>
                       <p className="text-xs text-slate-400">
-                        This figure represents an estimate of potential credit loss under current climate conditions. It is used for IFRS 9 provisioning only.
+                        This estimate is calculated using the IFRS 9 SPEI-conditioned credit risk model.
                       </p>
                     </div>
                   )}
@@ -176,28 +222,52 @@ export default async function BorrowerDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* ── Climate Conditions ── */}
+          {/* ── SPEI Drought Index ── */}
           <Card className="border-slate-200">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-bold flex items-center gap-2">
-                <CloudSun className="h-4 w-4 text-emerald-600" /> Climate Conditions
+                <CloudSun className="h-4 w-4 text-emerald-600" /> Drought Index (SPEI)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {climate ? (
+              {climate && gamma !== null ? (
                 <>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl font-black text-slate-900">{gamma.toFixed(2)}</span>
                     <Badge className={`${climate.color} border-none text-sm px-3 py-1`}>{climate.label}</Badge>
                   </div>
                   <p className="text-sm text-slate-600 leading-relaxed">{climate.description}</p>
-                  <p className="text-xs text-slate-400 pt-1">
-                    Based on satellite and weather data for {borrower.district ?? "your region"}.
+                  <div className="rounded-lg bg-slate-50 border border-slate-100 p-3">
+                    <p className="text-xs font-semibold text-slate-500 mb-1">SPEI Classification (WMO)</p>
+                    <div className="text-[10px] text-slate-400 space-y-0.5">
+                      <p>≥ 0: Normal/Wet &nbsp;|&nbsp; −1.0 to 0: Mildly Dry</p>
+                      <p>−1.0 to −1.5: Moderate Drought &nbsp;|&nbsp; &lt; −1.5: Severe Drought</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Computed from 3 years of historical precipitation and temperature data for {borrower.district ?? "your region"} using the Thornthwaite method.
                   </p>
+                  {hasField && (
+                    <Link href="/borrower/field">
+                      <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-1">
+                        <BarChart3 className="h-3.5 w-3.5" /> View full analysis
+                      </Button>
+                    </Link>
+                  )}
                 </>
               ) : (
-                <p className="text-sm text-slate-400 italic">
-                  Climate data not yet available. Your credit officer will run a field analysis.
-                </p>
+                <div className="space-y-3">
+                  {!hasField ? (
+                    <div className="flex items-start gap-2 text-sm text-slate-500">
+                      <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                      <span>Set up your farm field above to get your SPEI drought index and climate score.</span>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">
+                      SPEI data will appear after your first field analysis.
+                    </p>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -207,12 +277,19 @@ export default async function BorrowerDashboardPage() {
         {analysis && (
           <Card className="border-slate-200">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <Activity className="h-4 w-4 text-emerald-600" /> Field Health
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-emerald-600" /> Farm Health
+                </CardTitle>
+                <Link href="/borrower/field">
+                  <Button variant="ghost" size="sm" className="text-xs text-emerald-600">
+                    Manage farm →
+                  </Button>
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <FieldMetric
                   icon={<Activity className="h-4 w-4 text-emerald-500" />}
                   label="Health Score"
@@ -221,7 +298,7 @@ export default async function BorrowerDashboardPage() {
                 />
                 <FieldMetric
                   icon={<Activity className="h-4 w-4 text-emerald-500" />}
-                  label="Vegetation Index"
+                  label="Vegetation (NDVI)"
                   value={analysis.meanNDVI.toFixed(3)}
                   sub={analysis.ndviTrend.replace("_", " ")}
                 />
@@ -233,12 +310,12 @@ export default async function BorrowerDashboardPage() {
                 />
                 <FieldMetric
                   icon={<Thermometer className="h-4 w-4 text-orange-500" />}
-                  label="Avg Temperature"
+                  label="Temperature"
                   value={`${analysis.avgTemperature.toFixed(1)} °C`}
                   sub={analysis.diseaseRisk ? "⚠ Heat risk" : "Normal range"}
                 />
               </div>
-              <p className="text-xs text-slate-400 mt-4">
+              <p className="text-xs text-slate-400">
                 Last analysed {new Date(analysis.createdAt).toLocaleDateString()}.
               </p>
             </CardContent>
