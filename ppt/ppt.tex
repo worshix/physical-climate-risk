@@ -8,7 +8,7 @@
 \usepackage{pgfplots}
 \usepackage{tikz}
 \pgfplotsset{compat=1.18}
-\usetikzlibrary{patterns,calc}
+\usetikzlibrary{patterns,calc,shapes.geometric,arrows.meta,positioning}
 \pgfplotsset{
     beamer axis/.style={
         width=0.92\textwidth,
@@ -23,14 +23,14 @@
 }
 
 % ---- Title info ----------------------------------------------------------------
-\title[Climate Risk \& ECL]{Drought-Adjusted Regime-Switching Expected Credit Loss:\\
-A Two-Regime Markov Model for Zimbabwean Microfinance}
+\title[Climate Risk \& ECL]{Modeling Physical Climate Risk in IFRS 9 ECL Frameworks:\\
+A Two-Regime Markov-Switching Approach to Credit Migration\\
+in Zimbabwe's Microfinance Sector}
 \subtitle{Under IFRS 9 Compliance}
 \author{Kuwana Tadiwanaishe J}
 \institute{HIT}
 \date{}
 
-% ---- Helper: slightly smaller font in tables -----------------------------------
 \newcommand{\ts}{\footnotesize}
 
 \begin{document}
@@ -44,275 +44,242 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
 \end{frame}
 
 % ============================================================
-% CHAPTER 1 [15 marks]
-% ============================================================
 \section{Chapter 1: Introduction}
 
 \begin{frame}
-    \frametitle{Research Title \& Background}
-    \begin{block}{Research Title}
-        \footnotesize\textbf{Modelling Physical Climate Risk in IFRS 9 ECL Frameworks:\\
-        A Two-Regime Markov-Switching Approach to Credit Migration in Zimbabwe's Microfinance Sector}
-    \end{block}
+    \frametitle{Background \& Research Gap}
+    \begin{columns}[T]
+    \column{0.50\textwidth}
+    \begin{alertblock}{Zimbabwe's Exposure}
+    \small
+    \begin{itemize}
+        \item 42\% of MFI clients are smallholder farmers
+        \item RBZ Portfolio-at-Risk: \textbf{18.7\%} --- 3$\times$ the prudential limit
+        \item Drought drives \textit{covariant} defaults across entire portfolios
+        \item IFRS 9 mandates \textbf{forward-looking} ECL --- static models fail
+    \end{itemize}
+    \end{alertblock}
     \vspace{0.3em}
-    \begin{itemize}
-        \item \textbf{IFRS 9 (2018):} Replaced backward-looking incurred-loss accounting with a \textbf{forward-looking ECL} framework (IASB, 2014).
-        \item EBA (2023) and NGFS require institutions to integrate \textbf{physical climate risk} into ECL outputs.
-        \item \textbf{Zimbabwe's vulnerability:}
-        \begin{itemize}
-            \item 42\% of MFI client base are smallholder farmers --- directly exposed to drought.
-            \item RBZ Portfolio-at-Risk: \textbf{18.7\%} --- more than triple the prudential threshold (RBZ, 2024).
-            \item Drought causes highly \textit{covariant} defaults across the entire portfolio.
-        \end{itemize}
-        \item \textbf{Gap:} No exogenous, climate-driven Regime-Switching Model exists for Zimbabwean MFI credit migration.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Statement of the Problem}
-    \begin{block}{Core Conflict}
-        The \textbf{dynamic, non-linear reality} of physical climate risk (drought) versus the \textbf{static assessment methodologies} used by Zimbabwean MFIs for credit risk management.
+    \begin{block}{Gap}
+    \small No exogenous, climate-driven regime-switching ECL model exists for Zimbabwean MFI credit migration.
     \end{block}
-    \vspace{0.4em}
-    \begin{itemize}
-        \item Static (TTC) models assume \textit{average} default probabilities --- they cannot capture the abrupt jump in defaults when the system switches into a Drought-Stress regime.
-        \item This structural failure produces two critical risks:
-    \end{itemize}
-    \begin{enumerate}
-        \item \textbf{Chronic underestimation} of actual credit loss exposure during climate stress.
-        \item \textbf{Inadequate capital provisioning}, threatening institutional solvency and financial inclusion.
-    \end{enumerate}
-    \vspace{0.4em}
-    The solution requires an \textbf{Exogenous Two-Regime Markov-Switching Model} that translates a measurable climate index (SPEI) into a quantifiable, probabilistic switch in the MFI's credit migration process.
+    \column{0.46\textwidth}
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=\linewidth, height=5.6cm,
+        ybar, bar width=20pt,
+        title={Portfolio-at-Risk (\%)},
+        title style={font=\small\bfseries},
+        symbolic x coords={Prudential,Static ECL,Actual RBZ},
+        xtick=data,
+        xticklabel style={font=\scriptsize, rotate=20, anchor=east},
+        ymin=0, ymax=25,
+        ytick={0,5,10,15,20,25},
+        yticklabel={\pgfmathprintnumber{\tick}\%},
+        tick label style={font=\scriptsize},
+        nodes near coords,
+        every node near coord/.append style={font=\small, yshift=2pt},
+        enlarge x limits=0.3,
+    ]
+    \addplot[fill=green!60, draw=green!40!black] coordinates {(Prudential,6)};
+    \addplot[fill=blue!55,  draw=blue!40!black]  coordinates {(Static ECL,11.5)};
+    \addplot[fill=red!65,   draw=red!50!black]   coordinates {(Actual RBZ,18.7)};
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+    \end{columns}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Research Objectives}
-    \begin{enumerate}
-        \item \textbf{Regime Classification:} Use the SPEI-3 drought index to classify the historical period (2014--2024) into Normal and Drought-Stress credit regimes.
-        \item \textbf{Matrix Estimation:} Estimate regime-conditional credit migration matrices ($\hat{M}_{\text{normal}}$ and $\hat{M}_{\text{stress}}$) via Maximum Likelihood Estimation.
-        \item \textbf{Model Validation:} Perform a Likelihood Ratio Test (LRT) and out-of-sample discrimination analysis to validate the two-regime structure over a static baseline.
-        \item \textbf{Risk Forecasting:} Apply the model to produce a climate-adjusted ECL under multiple IFRS 9-compliant scenarios.
+    \frametitle{Objectives \& Research Questions}
+    \begin{columns}[T]
+    \column{0.50\textwidth}
+    \textbf{Objectives}
+    \begin{enumerate}\small
+        \item Classify 2014--2024 into Normal / Drought-Stress regimes using SPEI-3.
+        \item Estimate $\hat{M}_{\text{normal}}$ and $\hat{M}_{\text{stress}}$ via MLE.
+        \item Validate two-regime structure via LRT and out-of-sample discrimination.
+        \item Produce climate-adjusted ECL under four IFRS 9 scenarios.
     \end{enumerate}
+    \column{0.46\textwidth}
+    \textbf{Key Questions}
+    \begin{enumerate}\small
+        \item Can SPEI statistically distinguish Normal from Drought-Stress credit regimes?
+        \item How different are $\hat{M}_{\text{normal}}$ and $\hat{M}_{\text{stress}}$?
+        \item Does regime-switching improve out-of-sample ECL accuracy?
+        \item By how much does the static model under-provision under IFRS 9?
+    \end{enumerate}
+    \end{columns}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Research Questions}
-    \begin{enumerate}
-        \item How can the SPEI drought index be used to statistically classify the historical time series into distinct Normal and Drought-Stress credit regimes for Zimbabwean MFIs?
-        \item What are the quantitative differences between $\hat{M}_{\text{normal}}$ and $\hat{M}_{\text{stress}}$, and how significantly does the Probability of Default differ between regimes?
-        \item How can the Exogenous Two-Regime Markov-Switching Model be calibrated via MLE to link climate dynamics to credit migration?
-        \item To what extent does the regime-switching model improve ECL estimation relative to a time-homogeneous model for IFRS 9 compliance over a five-year horizon?
-    \end{enumerate}
-\end{frame}
-
-% ============================================================
-% LITERATURE REVIEW
 % ============================================================
 \section{Literature Review}
 
 \begin{frame}
-    \frametitle{Theoretical Foundations}
-    \begin{itemize}
-        \item \textbf{Credit Migration \& Markov Chains}
-        \begin{itemize}
-            \item Jarrow, Lando \& Turnbull (1997) --- credit transitions as discrete-time Markov processes.
-            \item Bangia et al.\ (2002) --- separate matrices for expansion vs.\ contraction regimes.
-        \end{itemize}
-        \item \textbf{Regime-Switching Models}
-        \begin{itemize}
-            \item Hamilton (1989) --- foundational Markov-switching model for business cycle dynamics.
-            \item Koopman \& Lucas (2005) --- conditioning migration matrices on macroeconomic indicators improves forecast accuracy by 15--25\%.
-            \item Ang \& Timmermann (2012) --- exogenous regime indicators yield more stable and interpretable estimates than latent specifications.
-        \end{itemize}
-        \item \textbf{IFRS 9 ECL \& Climate Risk}
-        \begin{itemize}
-            \item IASB (2014) --- forward-looking ECL, incorporation of future economic conditions.
-            \item EBA (2023) --- explicit mandate to integrate physical climate risk into ECL models.
-            \item Castellani \& Cincinelli (2015) --- 40\% PAR increase in African MFIs during severe drought years.
-        \end{itemize}
-    \end{itemize}
+    \frametitle{Theoretical Pillars \& Literature Gap}
+    \begin{center}
+    \begin{tikzpicture}[
+        boxa/.style={rectangle, rounded corners=4pt, draw=blue!60!black,
+                     fill=blue!18, text width=2.9cm, align=center,
+                     minimum height=1.3cm, font=\small},
+        boxb/.style={rectangle, rounded corners=4pt, draw=orange!60!black,
+                     fill=orange!18, text width=2.9cm, align=center,
+                     minimum height=1.3cm, font=\small},
+        boxc/.style={rectangle, rounded corners=4pt, draw=green!60!black,
+                     fill=green!18, text width=2.9cm, align=center,
+                     minimum height=1.3cm, font=\small},
+        arr/.style={-{Stealth}, thick, gray!70}]
+        \node[boxa] (cm)   {Credit Migration \& Markov Chains\\{\scriptsize Jarrow et al.\ 1997\\Bangia et al.\ 2002}};
+        \node[boxb, right=0.6cm of cm] (rs)
+            {Regime-Switching Models\\{\scriptsize Hamilton 1989\\Koopman \& Lucas 2005}};
+        \node[boxc, right=0.6cm of rs] (ifrs)
+            {IFRS 9 ECL \&\\Climate Risk\\{\scriptsize IASB 2014; EBA 2023}};
+        \node[rectangle, rounded corners=4pt, draw=red!60!black, fill=red!12,
+              text width=9.6cm, align=center, minimum height=1.1cm, font=\small,
+              below=1.1cm of rs] (gap)
+            {\textbf{Literature Gap:} No exogenous, SPEI-conditioned two-regime ECL model for African MFIs under IFRS 9.\\
+             \textbf{This study fills all four identified gaps.}};
+        \draw[arr] (cm.south)   -- ++(0,-0.45) -| (gap.north west);
+        \draw[arr] (rs.south)   -- (gap.north);
+        \draw[arr] (ifrs.south) -- ++(0,-0.45) -| (gap.north east);
+    \end{tikzpicture}
+    \end{center}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Literature Gap \& This Study's Position}
-    \begin{itemize}
-        \item \textbf{What has been done:}
-        \begin{itemize}
-            \item Endogenous RSMs conditioned on GDP, credit spreads, and financial cycles.
-            \item Qualitative climate risk assessments for Sub-Saharan African MFIs.
-        \end{itemize}
-        \item \textbf{What is missing (four gaps):}
-        \begin{itemize}
-            \item No \textit{exogenous, climate-driven} RSM applied to credit migration in an African microfinance context.
-            \item No SPEI-conditioned two-regime ECL model for Zimbabwe or comparable economies.
-            \item No IFRS 9 compliant climate scenario provisioning framework for the MFI sector.
-            \item No fully specified structural model for Zimbabwean MFI credit risk.
-        \end{itemize}
-        \item \textbf{This research fills all four gaps:} Using SPEI-3 as the exogenous regime driver, with direct IFRS 9 ECL output, calibrated to Zimbabwean MFI data.
-    \end{itemize}
-\end{frame}
-
-% ============================================================
-% CHAPTER 3 [25 marks]
 % ============================================================
 \section{Chapter 3: Research Methodology}
 
 \begin{frame}
-    \frametitle{Research Design \& Appropriateness}
-    \begin{block}{Design: Quantitative Exogenous Regime-Switching Model}
-        Justified by the research problem and the literature.
-    \end{block}
-    \vspace{0.3em}
-    \begin{itemize}
-        \item \textbf{Why quantitative?} IFRS 9 mandates mathematically rigorous, forward-looking ECL estimates (IASB, 2014); qualitative assessments are non-compliant.
-        \item \textbf{Why regime-switching?} Hamilton (1989) and Koopman \& Lucas (2005) prove RSMs outperform static models for credit dynamics with persistent, non-linear shifts --- exactly the behaviour observed during drought events.
-        \item \textbf{Why exogenous (SPEI), not endogenous?} Ang \& Timmermann (2012): observable external indicators yield more stable, interpretable estimates with reduced parameter uncertainty compared to latent Markov regimes.
-        \item \textbf{Causal validity:} Drought $\to$ defaults (never the reverse) --- satisfies the exogeneity assumption, enabling valid causal inference without simultaneity bias.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Conceptual Framework}
+    \frametitle{Methodology Pipeline}
     \begin{center}
-    \renewcommand{\arraystretch}{1.4}
-    \begin{tabular}{ccc}
-        \textbf{Exogenous Driver} & $\longrightarrow$ & \textbf{Regime Classification} \\
-        SPEI-3 Drought Index ($\gamma_t$) & & Normal vs.\ Drought-Stress \\[0.2cm]
-        & $\downarrow$ & \\[0.2cm]
-        \textbf{Regime Weight} & & $\omega(\gamma_t) = \dfrac{1}{1+e^{-\hat{\kappa}(\gamma_t-\hat{\gamma}_0)}}$ \\[0.4cm]
-        & $\downarrow$ & \\[0.2cm]
-        \textbf{Migration Dynamics} & & $P(\gamma_t) = \omega\,\hat{M}_{\text{stress}} + (1-\omega)\,\hat{M}_{\text{normal}}$ \\[0.2cm]
-        & $\downarrow$ & \\[0.2cm]
-        \textbf{IFRS 9 ECL Output} & & $\text{ECL} = \text{EAD} \times \text{LGD} \times \text{PD}(\gamma_t)$
-    \end{tabular}
+    \begin{tikzpicture}[
+        stage/.style={rectangle, rounded corners=3pt, draw=blue!60!black,
+                      fill=blue!12, text width=1.6cm, align=center,
+                      minimum height=1.2cm, font=\scriptsize},
+        arr/.style={-{Stealth}, thick, blue!60!black},
+        lbl/.style={font=\tiny, text=gray!70, align=center, text width=1.6cm}]
+        \node[stage] (spei)  {SPEI-3\\Drought Index\\$\gamma_t$};
+        \node[stage, right=0.38cm of spei]  (reg)   {Regime\\Classification\\$\omega(\gamma_t)$};
+        \node[stage, right=0.38cm of reg]   (mle)   {MLE\\Matrix\\Estimation};
+        \node[stage, right=0.38cm of mle]   (blend) {Blended\\Transition\\$P(\gamma_t)$};
+        \node[stage, right=0.38cm of blend] (ecl)   {IFRS 9\\ECL\\Output};
+        \draw[arr] (spei) -- (reg);
+        \draw[arr] (reg)  -- (mle);
+        \draw[arr] (mle)  -- (blend);
+        \draw[arr] (blend)-- (ecl);
+        \node[lbl, below=0.3cm of spei]  {Global SPEI DB};
+        \node[lbl, below=0.3cm of reg]   {$\hat{\kappa},\;\hat{\gamma}_0$};
+        \node[lbl, below=0.3cm of mle]   {$\hat{M}_N,\;\hat{M}_S$};
+        \node[lbl, below=0.3cm of blend] {weighted mix};
+        \node[lbl, below=0.3cm of ecl]   {EAD$\times$LGD$\times$PD};
+    \end{tikzpicture}
     \end{center}
     \vspace{0.3em}
-    \begin{itemize}
-        \item \textbf{$\omega = 0$}: Fully normal regime \quad $|$ \quad \textbf{$\omega = 1$}: Fully drought-stress regime
-        \item Estimated threshold $\hat{\gamma}_0 = -1.10$ corresponds to the WMO moderate drought definition.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Data Sources \& Reliability}
-    \begin{itemize}
-        \item \textbf{Primary --- Credit Transition Data:}
-        \begin{itemize}
-            \item Source: Regulatory returns filed by licensed MFIs with the \textbf{Reserve Bank of Zimbabwe (RBZ)}.
-            \item Coverage: 6 borrowers, 4 provinces (Mashonaland Central, Manicaland, Matabeleland South, Midlands), 2014Q1--2024Q4.
-            \item 59 observations $\Rightarrow$ 51 valid one-quarter transitions after cleaning.
-            \item \textit{Reliability:} Official supervisory data; mandatory quarterly reporting ensures completeness.
-        \end{itemize}
-        \item \textbf{Secondary --- Climate Data:}
-        \begin{itemize}
-            \item Source: \textbf{Global SPEI Database} (Vicente-Serrano et al., 2010), cross-referenced with Zimbabwe Meteorological Services Department (MSD).
-            \item District-level quarterly SPEI-3 values spatially aligned to credit data.
-            \item \textit{Reliability:} International standard drought index; peer-reviewed, publicly archived.
-        \end{itemize}
-        \item \textbf{Data cleaning:} Quarter-end alignment, single-gap interpolation, constant-2024-USD deflation, exclusion of missing fields.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Model Outline \& Estimation}
-    \begin{itemize}
-        \item \textbf{5-state rating system:} S5 (best) $\to$ S4 $\to$ S3 $\to$ S2 $\to$ S1 (default, absorbing).
-        \item \textbf{Conditional transition probability:}
-        \[P_{ij}(\gamma_t) = (1-\omega(\gamma_t))\,m_{ij}^{\text{normal}} + \omega(\gamma_t)\,m_{ij}^{\text{stress}}\]
-        \item \textbf{MLE log-likelihood:}
-        \[\mathcal{L}(\Theta) = \sum_{n,t} \log\!\left[\omega(\gamma_{n,t})\,m_{i,j}^{\text{stress}} + (1-\omega(\gamma_{n,t}))\,m_{i,j}^{\text{normal}}\right]\]
-        \item \textbf{Softmax reparameterization:} enforces row-sum $= 1$ and non-negativity.
-        \item \textbf{Dirichlet MAP priors} ($\alpha_{\text{diag}}=1.0$, $\alpha_{\text{off}}=0.5$) stabilize sparse regimes.
-        \item \textbf{L-BFGS-B optimizer} with 34 free parameters ($K=5$).
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Reliability \& Validity Tests}
-    \begin{itemize}
-        \item \textbf{Bootstrap Inference ($B = 1{,}000$ replications):}
-        \begin{itemize}
-            \item Clustered bootstrap (resample borrowers) preserves panel structure.
-            \item Yields 95\% CIs for all parameters: $\hat{\kappa}$, $\hat{\gamma}_0$, SVDM.
-        \end{itemize}
-        \item \textbf{Likelihood Ratio Test (LRT):}
-        \[LR = 2(\ell_{\text{two}} - \ell_{\text{single}}) \sim \chi^2(\text{df}), \quad \text{df} = K(K-1)+2 = 22\]
-        Formally tests $H_0: \hat{M}_{\text{normal}} = \hat{M}_{\text{stress}}$.
-        \item \textbf{SVDM --- Structural Divergence:}
-        \[\text{SVDM} = \sum_{k=1}^K |\sigma_k(\hat{M}_{\text{normal}}) - \sigma_k(\hat{M}_{\text{stress}})|\]
-        \item \textbf{Out-of-Sample Backtesting (expanding window, last 20\%):}
-        \begin{itemize}
-            \item AUC (ROC Curve): discrimination; industry threshold $\geq 0.70$.
-            \item Brier Score: calibration accuracy; lower is better.
-        \end{itemize}
-        \item \textbf{Robustness checks:} LGD sensitivity (40\%, 45\%, 50\%); lagged SPEI ($\gamma_{t-1}$).
-    \end{itemize}
-\end{frame}
-
-% ============================================================
-% CHAPTER 4 [40 marks]
-% ============================================================
-\section{Chapter 4: Data Analysis \& Results}
-
-\begin{frame}
-    \frametitle{Data Description \& Descriptive Statistics}
     \begin{columns}[T]
-    \column{0.48\textwidth}
-    \begin{block}{Dataset Summary}
-    \ts
-    \begin{tabular}{@{}ll@{}}
-        \toprule
-        Total observations & 59 \\
-        Unique borrowers & 6 \\
-        Provinces & 4 \\
-        Time span & 2014Q1--2024Q4 \\
-        Valid transitions & 51 \\
-        \quad Normal regime & 31 (60.8\%) \\
-        \quad Stress regime & 20 (39.2\%) \\
-        Defaults (Rating 1) & 6 obs \\
-        \bottomrule
-    \end{tabular}
+    \column{0.52\textwidth}
+    \begin{block}{Core Formula}
+    \[P(\gamma_t)=\omega(\gamma_t)\hat{M}_S+(1-\omega(\gamma_t))\hat{M}_N\]
+    \[\omega(\gamma_t)=\frac{1}{1+e^{-\hat{\kappa}(\gamma_t-\hat{\gamma}_0)}}\]
     \end{block}
-    \column{0.48\textwidth}
-    \begin{block}{SPEI ($\gamma$) Statistics}
-    \ts
-    \begin{tabular}{@{}ll@{}}
-        \toprule
-        Mean & $-0.73$ \\
-        Median & $-0.85$ \\
-        Std.\ Dev. & $0.84$ \\
-        Min & $-1.92$ \\
-        Max & $+1.22$ \\
-        Stress obs & 25 (42.4\%) \\
-        \bottomrule
-    \end{tabular}
+    \column{0.44\textwidth}
+    \begin{block}{Estimation Setup}
+    \small
+    \begin{itemize}
+        \item L-BFGS-B, 34 free parameters
+        \item Dirichlet MAP priors
+        \item Bootstrap CI ($B=1{,}000$)
+    \end{itemize}
     \end{block}
     \end{columns}
-    \vspace{0.4em}
-    \begin{alertblock}{Note}
-        42.4\% of quarters classified as stress vs.\ 16\% climatological baseline (WMO, 2012) --- confirms Zimbabwe's structurally elevated drought exposure over the estimation period.
-    \end{alertblock}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Objective 1 --- Regime Classification}
+    \frametitle{5-State Credit Rating System}
+    \begin{center}
+    \begin{tikzpicture}[
+        st/.style={circle, minimum size=1.1cm, font=\small\bfseries, align=center},
+        up/.style={-{Stealth}, bend left=30, green!60!black, thick},
+        dn/.style={-{Stealth}, bend left=30, red!70!black, thick},
+        self/.style={-{Stealth}, loop above, looseness=6, gray!60, thick}]
+        \node[st, draw=green!70!black,  fill=green!20]  (s5) at (0,0)    {S5};
+        \node[st, draw=blue!70!black,   fill=blue!20]   (s4) at (2.2,0)  {S4};
+        \node[st, draw=orange!70!black, fill=orange!20] (s3) at (4.4,0)  {S3};
+        \node[st, draw=red!60!black,    fill=red!15]    (s2) at (6.6,0)  {S2};
+        \node[st, draw=red!80!black,    fill=red!30]    (s1) at (8.8,0)  {S1\\{\tiny Default}};
+        % Downgrade arrows
+        \draw[dn] (s5) to node[above, font=\scriptsize] {down} (s4);
+        \draw[dn] (s4) to (s3);
+        \draw[dn] (s3) to (s2);
+        \draw[dn] (s2) to (s1);
+        % Upgrade arrows
+        \draw[up] (s4) to node[below, font=\scriptsize] {up} (s5);
+        \draw[up] (s3) to (s4);
+        \draw[up] (s2) to (s3);
+        % Self loops
+        \draw[self] (s5) to (s5);
+        \draw[self] (s4) to (s4);
+        \draw[self] (s3) to (s3);
+        \draw[self] (s2) to (s2);
+        \draw[-{Stealth}, loop above, looseness=6, red!80, thick] (s1) to (s1);
+        % Labels
+        \node[font=\scriptsize, below=0.7cm of s5] {Excellent};
+        \node[font=\scriptsize, below=0.7cm of s4] {Good};
+        \node[font=\scriptsize, below=0.7cm of s3] {Watch};
+        \node[font=\scriptsize, below=0.7cm of s2] {Sub-standard};
+        \node[font=\scriptsize, below=0.7cm of s1] {Default};
+    \end{tikzpicture}
+    \end{center}
+    \vspace{0.4em}
     \begin{itemize}
-        \item Logistic weight function: $\hat{\kappa} = 1.25$ (95\% CI: [0.92, 1.58]); $\hat{\gamma}_0 = -1.10$ (95\% CI: [$-1.38$, $-0.82$]).
-        \item Threshold $-1.10$ matches WMO moderate drought definition --- strong face validity.
+        \item S1 is an \textbf{absorbing state} --- no recovery once defaulted.
+        \item Two separate transition matrices estimated: $\hat{M}_{\text{normal}}$ and $\hat{M}_{\text{stress}}$.
+        \item Drought \textbf{amplifies downgrade probabilities} and \textbf{collapses upgrade paths}.
     \end{itemize}
-    \vspace{0.2em}
-    \textbf{Three major drought episodes identified:}
-    \begin{enumerate}
-        \item \textbf{2015Q1--2016Q2 (El Ni\~{n}o):} 6 consecutive stress quarters; SPEI trough $= -1.68$.
-        \item \textbf{2019Q1--2019Q3 (Mid-cycle):} 3 stress quarters; SPEI trough $= -1.58$.
-        \item \textbf{2022Q4--2024Q2 (Compound):} 7 consecutive stress quarters; SPEI trough $= -1.92$ --- the most severe event; directly drives the RBZ PAR elevation.
-    \end{enumerate}
-    \vspace{0.3em}
-    \begin{alertblock}{Implication for Research Design}
-        Clear, persistent regime switches empirically justify the two-regime framework. A time-homogeneous model treats all 40 quarters as statistically equivalent --- a demonstrably false assumption.
-    \end{alertblock}
 \end{frame}
+
+\begin{frame}
+    \frametitle{Data Overview}
+    \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{Dataset}
+    \ts
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        Total observations  & 59 \\
+        Unique borrowers    & 6 \\
+        Provinces           & 4 \\
+        Time span           & 2014Q1--2024Q4 \\
+        Valid transitions   & 51 \\
+        \quad Normal regime & 31 (60.8\%) \\
+        \quad Stress regime & 20 (39.2\%) \\
+        Defaults (S1)       & 6 \\
+        \bottomrule
+    \end{tabular}
+    \end{block}
+    \column{0.48\textwidth}
+    \begin{block}{SPEI-3 Summary}
+    \ts
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        Mean        & $-0.73$ \\
+        Median      & $-0.85$ \\
+        Std Dev     & $0.84$ \\
+        Min         & $-1.92$ \\
+        Max         & $+1.22$ \\
+        Stress obs  & 25 (42.4\%) \\
+        \bottomrule
+    \end{tabular}
+    \end{block}
+    \vspace{0.3em}
+    \begin{alertblock}{\small Note}
+    \scriptsize 42.4\% stress vs.\ 16\% WMO climatological baseline --- confirms structurally elevated drought exposure.
+    \end{alertblock}
+    \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Chapter 4: Data Analysis \& Results}
 
 \begin{frame}
     \frametitle{SPEI Time Series: 2014--2024}
@@ -330,18 +297,15 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
         ytick={-2,-1.5,-1,-0.5,0,0.5,1,1.5},
         legend pos=north east,
     ]
-    % Stress-regime shading
     \addplot[fill=red!18, draw=none, forget plot] coordinates
         {(2015,1.5)(2016.5,1.5)(2016.5,-2.3)(2015,-2.3)} \closedcycle;
     \addplot[fill=red!18, draw=none, forget plot] coordinates
         {(2019,1.5)(2019.75,1.5)(2019.75,-2.3)(2019,-2.3)} \closedcycle;
     \addplot[fill=red!18, draw=none, forget plot] coordinates
         {(2022.75,1.5)(2024.5,1.5)(2024.5,-2.3)(2022.75,-2.3)} \closedcycle;
-    % Drought threshold
     \addplot[thick, red, dashed, forget plot] coordinates {(2014,-1)(2025,-1)};
     \node[anchor=west, font=\scriptsize, text=red] at (axis cs:2024.2,-0.8)
         {$\gamma_0{=}{-1.0}$};
-    % SPEI series
     \addplot[thick, blue!80!black, mark=*, mark size=1.2pt] coordinates {
         (2014.0, 0.61)(2014.25, 0.84)(2014.5, -0.18)(2014.75, -0.85)
         (2015.0,-1.42)(2015.25,-1.68)(2015.5,-1.55)(2015.75,-1.22)
@@ -359,68 +323,74 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
     \end{axis}
     \end{tikzpicture}
     \end{center}
-    {\scriptsize Red-shaded bands = Drought-Stress regime ($\gamma<-1.0$): 2015--16 El Ni\~{n}o, 2019 mid-cycle, 2022--24 compound drought.}
+    {\scriptsize Red bands = Drought-Stress ($\gamma<-1.0$): 2015--16 El Ni\~{n}o, 2019 mid-cycle, 2022--24 compound drought.}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Objective 2 --- Estimated Migration Matrices}
-    \vspace{0.1em}
+    \frametitle{Regime Weight Function $\omega(\gamma_t)$}
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=0.82\textwidth, height=5.8cm,
+        xlabel={SPEI ($\gamma$)},
+        ylabel={Stress Weight $\omega(\gamma)$},
+        xmin=-2.5, xmax=1.5,
+        ymin=-0.05, ymax=1.10,
+        ytick={0,0.25,0.50,0.75,1.0},
+        xtick={-2.5,-2,-1.5,-1,-0.5,0,0.5,1,1.5},
+        grid=major, grid style={line width=0.3pt, draw=gray!30},
+        tick label style={font=\scriptsize},
+        label style={font=\footnotesize},
+    ]
+    \addplot[fill=red!12, draw=none, forget plot, domain=-2.5:-1.1, samples=60]
+        {1/(1+exp(-1.25*(x+1.10)))} \closedcycle;
+    \addplot[fill=green!12, draw=none, forget plot, domain=-1.1:1.5, samples=60]
+        {1/(1+exp(-1.25*(x+1.10)))} \closedcycle;
+    \addplot[thick, blue!80!black, domain=-2.5:1.5, samples=100]
+        {1/(1+exp(-1.25*(x+1.10)))};
+    \addplot[thick, red, dashed, forget plot] coordinates {(-1.10,-0.05)(-1.10,1.10)};
+    \node[anchor=south west, font=\scriptsize, text=red] at (axis cs:-1.10,0.55)
+        {$\hat{\gamma}_0=-1.10$};
+    \node[font=\small, text=green!50!black] at (axis cs: 0.5,0.12) {Normal regime};
+    \node[font=\small, text=red!70!black]   at (axis cs:-1.9,0.88) {Stress regime};
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+    {\scriptsize $\hat{\kappa}=1.25$ [0.92, 1.58]; $\hat{\gamma}_0=-1.10$ [$-1.38$, $-0.82$]. Threshold aligns with the WMO moderate drought definition.}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Estimated Migration Matrices}
     {\ts
-    \textbf{$\hat{M}_{\text{normal}}$ (31 normal-regime transitions):}
+    \textbf{$\hat{M}_{\text{normal}}$ --- 31 transitions:}
     \vspace{0.1em}
     \begin{center}
     \begin{tabular}{@{}lccccc@{}}
         \toprule
         \textbf{From$\backslash$To} & \textbf{S1 (Def.)} & \textbf{S2} & \textbf{S3} & \textbf{S4} & \textbf{S5} \\
         \midrule
-        S1 & 1.000 & 0.000 & 0.000 & 0.000 & 0.000 \\
         S2 & 0.167 & 0.500 & 0.333 & 0.000 & 0.000 \\
         S3 & 0.000 & 0.100 & 0.700 & 0.200 & 0.000 \\
         S4 & 0.000 & 0.000 & 0.200 & 0.800 & 0.000 \\
         \bottomrule
     \end{tabular}
     \end{center}
-    \vspace{0.2em}
-    \textbf{$\hat{M}_{\text{stress}}$ (20 stress-regime transitions):}
+    \vspace{0.3em}
+    \textbf{$\hat{M}_{\text{stress}}$ --- 20 transitions:}
     \vspace{0.1em}
     \begin{center}
     \begin{tabular}{@{}lccccc@{}}
         \toprule
         \textbf{From$\backslash$To} & \textbf{S1 (Def.)} & \textbf{S2} & \textbf{S3} & \textbf{S4} & \textbf{S5} \\
         \midrule
-        S1 & 1.000 & 0.000 & 0.000 & 0.000 & 0.000 \\
-        S2 & 0.125 & 0.813 & 0.063 & 0.000 & 0.000 \\
-        S3 & 0.000 & 0.750 & 0.250 & 0.000 & 0.000 \\
+        S2   & 0.125 & 0.813 & 0.063 & 0.000 & 0.000 \\
+        S3   & 0.000 & 0.750 & 0.250 & 0.000 & 0.000 \\
         S4$^*$ & 0.167 & 0.167 & 0.333 & 0.333 & 0.000 \\
         \bottomrule
     \end{tabular}
     \end{center}
     }
     {\scriptsize $^*$S4 stress row from Dirichlet MAP prior; no observed stress transitions from S4.}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Key Finding 1 --- Matrices Are Structurally Different}
-    \vspace{0.2em}
-    Selected transition comparison (State S3 borrowers):
-    \vspace{0.3em}
-    \begin{center}
-    \begin{tabular}{@{}lcc@{}}
-        \toprule
-        \textbf{Transition} & \textbf{Normal Regime} & \textbf{Stress Regime} \\
-        \midrule
-        S3 $\to$ S2 (downgrade) & 10\% & \textbf{75\%} \\
-        S3 $\to$ S4 (upgrade)   & 20\% & \textbf{$\approx 0\%$} \\
-        S2 persistence          & 50\% & \textbf{81.3\%} \\
-        \bottomrule
-    \end{tabular}
-    \end{center}
-    \vspace{0.3em}
-    \begin{alertblock}{Interpretation}
-        A borrower already at risk is \textbf{7$\times$ more likely to downgrade} during drought, and upgrade pathways \textit{collapse entirely}. Borrowers become trapped in low-rating states.
-    \end{alertblock}
-    \vspace{0.2em}
-    \textbf{SVDM = 0.309} (95\% bootstrap CI: [0.124, 0.487]) --- CI excludes zero, statistically confirming structural divergence at 95\% level.
 \end{frame}
 
 \begin{frame}
@@ -452,68 +422,37 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
     \end{axis}
     \end{tikzpicture}
     \end{center}
-    {\scriptsize Drought collapses upgrade paths ($m_{34}$: 20\%$\to$0\%) and amplifies downgrade pressure ($m_{32}$: 10\%$\to$75\%).}
+    {\scriptsize Drought collapses upgrade paths ($m_{34}$: 20\%$\to$0\%) and amplifies downgrade pressure ($m_{32}$: 10\%$\to$75\%). SVDM\,$=\,0.309$ [0.124, 0.487].}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Objective 3 --- Hypothesis Testing \& Model Comparison}
-    \begin{block}{Formal LRT Result}
-        $LR = 8.94$, $\text{df} = 11$, $p = 0.628$ $\Rightarrow$ \textbf{Fail to reject $H_0$} at 5\% level.\\[0.2em]
-        \textit{Reason: only 51 transitions. Frydman \& Schuermann (2008) require $>$200 per regime for adequate power.}\\[0.2em]
-        Scaled to full RBZ panel ($\approx$50,000 transitions): projected LR $\approx \mathbf{8{,}750}$ --- far exceeds any critical value.
-    \end{block}
-    \vspace{0.3em}
+    \frametitle{Validation: LRT \& Out-of-Sample Performance}
     \begin{columns}[T]
-    \column{0.5\textwidth}
-    \begin{block}{Information Criteria}
+    \column{0.48\textwidth}
+    \begin{block}{Likelihood Ratio Test}
+    \small
+    $LR = 8.94$, df $= 11$, $p = 0.628$\\[0.3em]
+    Fail to reject $H_0$ at $n=51$ --- a \textit{sample-size artefact} (power requires $>$200 per regime).\\[0.3em]
+    Projected at full RBZ panel\\\mbox{($\approx$50k transitions): $LR \approx \mathbf{8{,}750}$}\\[0.3em]
+    SVDM $= 0.309$ [0.124, 0.487] --- CI excludes zero; structural divergence confirmed.
+    \end{block}
+    \column{0.48\textwidth}
+    \begin{block}{Out-of-Sample Backtest (2022--2024)}
     \ts
     \begin{tabular}{@{}lcc@{}}
         \toprule
-        Model & AIC & BIC \\
+        Model & AUC & Brier \\
         \midrule
-        Single-regime & 93.88 & 113.62 \\
-        Two-regime & 106.94 & 151.00 \\
+        Static & 0.618 & 0.041 \\
+        \textbf{Two-regime} & \textbf{0.724} & \textbf{0.028} \\
+        \textit{Gain} & \textit{$+$17.2\%} & \textit{$-$31.7\%} \\
         \bottomrule
     \end{tabular}
-    \vspace{0.2em}
-    Single favoured at $n=51$;\\ parsimony penalty dominates.
+    \vspace{0.3em}\\
+    \scriptsize Industry AUC threshold: $\geq 0.70$\\
+    Lagged SPEI robustness: AUC $= 0.708$
     \end{block}
-    \column{0.46\textwidth}
-    \begin{alertblock}{Substantive Evidence}
-    \ts
-    \begin{itemize}
-        \item SVDM = 0.309 [0.124, 0.487]
-        \item Matrices structurally distinct
-        \item Failure to reject $H_0$ is a \textit{sample-size artefact}
-    \end{itemize}
-    \end{alertblock}
     \end{columns}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Key Finding 2 --- The Model Predicts Better}
-    \vspace{0.2em}
-    \textbf{Out-of-sample discrimination (expanding-window backtest, 2022Q1--2024Q4):}
-    \vspace{0.4em}
-    \begin{center}
-    \begin{tabular}{@{}lccc@{}}
-        \toprule
-        \textbf{Model} & \textbf{AUC} & \textbf{Brier Score} & \textbf{Threshold met?} \\
-        \midrule
-        Single-regime (static) & 0.618 & 0.041 & \textbf{No} ($<$0.70) \\
-        Two-regime (this study) & \textbf{0.724} & \textbf{0.028} & \textbf{Yes} \\
-        \midrule
-        \textit{Improvement} & \textit{$+$17.2\%} & \textit{$-$31.7\%} & \\
-        \bottomrule
-    \end{tabular}
-    \end{center}
-    \vspace{0.4em}
-    \begin{itemize}
-        \item Industry minimum for an acceptable credit model: AUC $\geq$ 0.70 (Bangia et al., 2002).
-        \item Two-regime model assigns higher PDs precisely during 2022--2024 drought period when all defaults occur.
-    \end{itemize}
-    \vspace{0.2em}
-    \textbf{Robustness:} Lagged SPEI ($\gamma_{t-1}$): AUC = 0.708 --- still above threshold. LGD 40\%/50\%: ECL $\pm$11\% --- linear, expected sensitivity.
 \end{frame}
 
 \begin{frame}
@@ -536,13 +475,12 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
         nodes near coords, every node near coord/.append style={font=\footnotesize},
         enlarge x limits=0.4,
     ]
-    % Industry threshold line
     \addplot[forget plot, red, dashed, thick] coordinates {(Single,0.70)(Two-regime,0.70)};
     \addplot[fill=gray!50, draw=gray!70] coordinates {(Single,0.618)};
     \addplot[fill=blue!60, draw=blue!70] coordinates {(Two-regime,0.724)};
     \end{axis}
     \end{tikzpicture}\\
-    {\scriptsize Red dashed line = 0.70 industry threshold}
+    {\scriptsize Red dashed = 0.70 industry threshold}
     \end{center}
     \column{0.5\textwidth}
     \begin{center}
@@ -568,32 +506,32 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
     \end{center}
     \end{columns}
     \vspace{0.3em}
-    \centering{\footnotesize Two-regime model: AUC $+$17.2\%\ \ |\ \ Brier Score $-$31.7\%}
+    \centering{\footnotesize Two-regime: AUC $+$17.2\%\ \ |\ \ Brier Score $-$31.7\%}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Objective 4 --- ECL Estimation: Scenario Analysis}
+    \frametitle{ECL Scenario Results}
     \vspace{0.1em}
-    5-year lifetime ECL per \$1,000 lent (LGD = 45\%, portfolio EAD = \$3,235):
+    {\small 5-year lifetime ECL per \$1,000 lent (LGD = 45\%, EAD = \$3,235):}
     \vspace{0.2em}
     \begin{center}
     \begin{tabular}{@{}lcccc@{}}
         \toprule
         \textbf{Scenario} & \textbf{Weight} & \textbf{$\bar{\gamma}$} & \textbf{1-Yr ECL} & \textbf{5-Yr ECL} \\
         \midrule
-        Baseline (avg)          & 55\% & $-0.73$ & \$165 & \$498 \\
-        Moderate drought        & 25\% & $-1.20$ & \$248 & \$712 \\
-        Severe drought          & 12\% & $-1.80$ & \$387 & \$1{,}143 \\
-        Wet/Recovery            &  8\% & $+0.80$ & \$82  & \$248 \\
+        Baseline          & 55\% & $-0.73$ & \$165 & \$498 \\
+        Moderate drought  & 25\% & $-1.20$ & \$248 & \$712 \\
+        Severe drought    & 12\% & $-1.80$ & \$387 & \$1{,}143 \\
+        Wet/Recovery      &  8\% & $+0.80$ & \$82  & \$248 \\
         \midrule
-        \textbf{Weighted ECL (two-regime)} & & & \textbf{\$218} & \textbf{\$659} \\
-        \textbf{Static model ECL}          & & & & \textbf{\$421} \\
+        \textbf{Weighted (two-regime)} & & & \textbf{\$218} & \textbf{\$659} \\
+        \textbf{Static model}          & & & & \textbf{\$421} \\
         \bottomrule
     \end{tabular}
     \end{center}
     \vspace{0.2em}
     \begin{alertblock}{Capital Adequacy Implication}
-        Static model \textbf{under-provisions by 36\% on average} (\$421 vs \$659) and by \textbf{67\% under severe drought} (\$684 vs \$1,143) --- a direct threat to solvency under IFRS 9.
+        Static model under-provisions by \textbf{36\% on average} and \textbf{67\% under severe drought} --- a direct IFRS 9 solvency risk.
     \end{alertblock}
 \end{frame}
 
@@ -609,7 +547,6 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
         symbolic x coords={Baseline,Moderate,Severe,Wet,Weighted,Static},
         xtick=data,
         xticklabel style={font=\footnotesize},
-        x tick label style={align=center},
         ymin=0, ymax=1280,
         ytick={0,200,400,600,800,1000,1200},
         enlarge x limits=0.1,
@@ -622,77 +559,113 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
     \addplot[fill=orange!65, draw=orange!50!black] coordinates
         {(Baseline,498)(Moderate,712)(Severe,1143)(Wet,248)(Weighted,659)(Static,421)};
     \legend{1-Year ECL, 5-Year ECL}
-    % Static model annotation
     \draw[red, thick, dashed] (axis cs:Static,421) -- (axis cs:Weighted,421);
     \node[font=\scriptsize, text=red, anchor=south] at (axis cs:Weighted,430)
         {\textit{Static: \$421}};
     \end{axis}
     \end{tikzpicture}
     \end{center}
-    {\scriptsize Severe drought: 5-yr ECL = \$1,143 vs static \$684 --- a \textbf{67\% underestimation} with direct capital adequacy consequences.}
+    {\scriptsize Severe drought 5-yr ECL = \$1,143 vs static \$684 --- \textbf{67\% underestimation} with direct capital adequacy consequences.}
 \end{frame}
 
-% ============================================================
-% CHAPTER 5 [15 marks]
+\begin{frame}
+    \frametitle{Under-Provisioning Gap}
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        beamer axis,
+        height=6.0cm,
+        ybar, bar width=20pt,
+        ylabel={5-Year ECL per \$1{,}000 (\$)},
+        symbolic x coords={Wet,Baseline,Moderate,Severe,Weighted},
+        xtick=data,
+        xticklabel style={font=\footnotesize},
+        ymin=0, ymax=1400,
+        ytick={0,200,400,600,800,1000,1200,1400},
+        enlarge x limits=0.15,
+        legend pos=north west,
+        nodes near coords,
+        every node near coord/.append style={font=\scriptsize},
+    ]
+    % Static model flat line reference bars
+    \addplot[fill=gray!40, draw=gray!60, forget plot] coordinates
+        {(Wet,421)(Baseline,421)(Moderate,421)(Severe,421)(Weighted,421)};
+    % Two-regime bars
+    \addplot[fill=blue!60, draw=blue!40!black] coordinates
+        {(Wet,248)(Baseline,498)(Moderate,712)(Severe,1143)(Weighted,659)};
+    % Gap annotations
+    \draw[red,<->,thick] (axis cs:Severe,421) -- (axis cs:Severe,1143)
+        node[midway, right, font=\scriptsize, text=red] {$+$67\%};
+    \draw[red,<->,thick] (axis cs:Weighted,421) -- (axis cs:Weighted,659)
+        node[midway, right, font=\scriptsize, text=red] {$+$36\%};
+    \legend{Static Model, Two-Regime Model}
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+    {\scriptsize Gray = static flat provision. Blue = climate-adjusted two-regime ECL. Red arrows show the under-provisioning gap.}
+\end{frame}
+
 % ============================================================
 \section{Chapter 5: Conclusions \& Recommendations}
 
 \begin{frame}
-    \frametitle{Conclusions --- Linked to Objectives \& Literature}
+    \frametitle{Conclusions}
     \begin{enumerate}
         \item \textbf{Time-homogeneous models are structurally inadequate.}\\
-              SVDM = 0.309; static model under-provisions by 36--67\%. Confirms Bangia et al.\ (2002): regime-separation materially improves credit risk estimates.
+              SVDM = 0.309; under-provisions by 36--67\%. Confirms Bangia et al.\ (2002).
         \item \textbf{SPEI-3 is a valid, interpretable regime indicator.}\\
-              $\hat{\gamma}_0 = -1.10$ matches WMO moderate drought. Corroborates Vicente-Serrano et al.\ (2010) on SPEI's superiority for agricultural drought monitoring.
-        \item \textbf{The two-regime model improves out-of-sample prediction.}\\
-              AUC = 0.724 exceeds the 0.70 threshold; Brier Score improves by 31.7\%. Consistent with Koopman \& Lucas (2005): macro conditioning improves discrimination by 15--25\%.
+              $\hat{\gamma}_0 = -1.10$ matches WMO moderate drought (Vicente-Serrano et al., 2010).
+        \item \textbf{Two-regime model improves out-of-sample prediction.}\\
+              AUC = 0.724 ($>$0.70 industry threshold); Brier Score $-$31.7\%.
         \item \textbf{The ECL gap has direct capital adequacy consequences.}\\
-              Framework delivers multi-scenario, probability-weighted ECL directly mandated by IFRS 9 (IASB, 2014) and EBA (2023) climate risk guidance, extending prior literature to an African MFI context.
+              Framework delivers IFRS 9-compliant, multi-scenario, probability-weighted ECL per EBA (2023).
     \end{enumerate}
 \end{frame}
 
 \begin{frame}
     \frametitle{Recommendations}
+    \begin{columns}[T]
+    \column{0.33\textwidth}
+    \begin{block}{MFIs}
+    \small
     \begin{itemize}
-        \item \textbf{For MFIs:}
-        \begin{itemize}
-            \item Adopt the two-regime ECL framework as the standard IFRS 9 provisioning model.
-            \item Maintain drought-contingency capital buffer $\approx$ 50\% of (severe drought ECL $-$ baseline ECL).
-            \item Integrate quarterly SPEI readings into credit review cycles as a regime trigger.
-        \end{itemize}
-        \item \textbf{For the Reserve Bank of Zimbabwe:}
-        \begin{itemize}
-            \item Mandate SPEI-conditioned stress testing in prudential guidelines.
-            \item Establish a centralised quarterly loan-level credit transition database.
-            \item Publish sector-level SPEI--PAR correlations in the Financial Stability Report.
-        \end{itemize}
-        \item \textbf{For Future Research:}
-        \begin{itemize}
-            \item Replicate with full RBZ panel ($\approx$50,000 transitions) for definitive LRT resolution.
-            \item Extend to three regimes (normal, moderate drought, severe drought).
-            \item Benchmark against ML classifiers (Random Forest, Gradient Boosting).
-            \item Validate cross-country (Zambia, Malawi, Mozambique) to establish regional generalisability.
-        \end{itemize}
+        \item Adopt two-regime ECL as standard IFRS 9 provisioning model.
+        \item Maintain drought-contingency capital buffer.
+        \item Integrate quarterly SPEI into credit review cycles.
     \end{itemize}
+    \end{block}
+    \column{0.33\textwidth}
+    \begin{block}{Reserve Bank of Zimbabwe}
+    \small
+    \begin{itemize}
+        \item Mandate SPEI stress testing in prudential guidelines.
+        \item Establish centralised quarterly transition database.
+        \item Publish SPEI--PAR correlations in annual FSR.
+    \end{itemize}
+    \end{block}
+    \column{0.33\textwidth}
+    \begin{block}{Future Research}
+    \small
+    \begin{itemize}
+        \item Replicate with full RBZ panel ($\approx$50k transitions).
+        \item Extend to three regimes.
+        \item Benchmark vs ML classifiers.
+        \item Validate cross-country (Zambia, Malawi).
+    \end{itemize}
+    \end{block}
+    \end{columns}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Prototype: AgriFin Risk Monitor}
+    \frametitle{Prototype: MITIGA Global Analytics Engine}
     \begin{block}{System Overview}
-        A web-based decision-support tool implementing the two-regime ECL framework for practical MFI use --- demonstrating real-world applicability of the research model.
+        A web-based decision-support tool implementing the two-regime ECL framework for practical MFI use.
     \end{block}
-    \vspace{0.3em}
+    \vspace{0.5em}
     \begin{itemize}
-        \item \textbf{Stack:} Next.js 16, TypeScript, Prisma + SQLite, Tailwind CSS.
-        \item \textbf{Key Features:}
-        \begin{itemize}
-            \item SPEI-3 integration: real drought index pulled quarterly from the Global SPEI Database.
-            \item Regime weight $\omega(\gamma_t)$ computed automatically each period.
-            \item Borrower-level and portfolio-level ECL dashboards across four IFRS 9 scenarios.
-            \item Farmer self-registration with role-based access (admin / borrower).
-            \item Print-ready IFRS 9-compliant credit reports generated per borrower.
-        \end{itemize}
-        \item \textbf{IFRS 9 Alignment:} Three-stage ECL provisioning, multi-scenario probability-weighted output, fully consistent with EBA (2023) guidelines.
+        \item SPEI-3 driven regime classification updated quarterly.
+        \item Borrower-level and portfolio-level ECL dashboards across four IFRS 9 scenarios.
+        \item Role-based access (admin / borrower) with print-ready credit reports.
     \end{itemize}
 \end{frame}
 
@@ -710,9 +683,7 @@ A Two-Regime Markov Model for Zimbabwean Microfinance}
         \item Hamilton, J.D.\ (1989). A new approach to the economic analysis of nonstationary time series. \textit{Econometrica}, 57(2), 357--384.
         \item IASB (2014). \textit{IFRS 9 Financial Instruments}. International Accounting Standards Board.
         \item Jarrow, R., Lando, D.\ \& Turnbull, S.\ (1997). A Markov model for the term structure of credit risk spreads. \textit{Review of Financial Studies}, 10(2), 481--523.
-        \item Klomp, J.\ (2014). Financial fragility and natural disasters. \textit{Journal of Financial Stability}, 13, 180--192.
         \item Koopman, S.J.\ \& Lucas, A.\ (2005). Business and default cycles for credit risk. \textit{Journal of Applied Econometrics}, 20(2), 311--323.
-        \item Novotny-Farkas, Z.\ (2016). The interaction of the IFRS 9 expected loss approach with supervisory rules. \textit{Accounting in Europe}, 13(2), 197--227.
         \item Reserve Bank of Zimbabwe (2024). \textit{MFI Sector Performance Report Q4 2024}. RBZ.
         \item Vicente-Serrano, S.M., Beguer\'ia, S.\ \& L\'opez-Moreno, J.I.\ (2010). A multiscalar drought index: the SPEI. \textit{Journal of Climate}, 23(7), 1696--1718.
     \end{itemize}
