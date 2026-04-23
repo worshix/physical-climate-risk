@@ -8,7 +8,19 @@
       "Bash(touch src/__init__.py)",
       "Bash(uv add streamlit pandas numpy scipy scikit-learn matplotlib)",
       "Bash(uv run python -c \":*)",
-      "Bash(pdflatex -interaction=nonstopmode ppt.tex)"
+      "Bash(pdflatex -interaction=nonstopmode ppt.tex)",
+      "Bash(pnpm exec *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")",
+      "Bash(pm2 list *)",
+      "Bash(netstat -tlnp)",
+      "Bash(timeout 15 pnpm dev)",
+      "Bash(pnpm dev *)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/auth/login)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/auth/signup)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Read(//tmp/**)",
+      "Bash(pkill -f \"next dev\")"
     ],
     "additionalDirectories": [
       "/home/worshix/school-projects/physical-climate-risk/application/app/api/admin/fields/[fieldId]/analyse"

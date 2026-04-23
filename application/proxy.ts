@@ -11,12 +11,14 @@ export default function proxy(request: NextRequest) {
   }
 
   if (userId && isAuthPage) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const userRole = request.cookies.get("userRole")?.value;
+    const dest = userRole === "ADMIN" ? "/admin/dashboard" : "/borrower/dashboard";
+    return NextResponse.redirect(new URL(dest, request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/field/:path*", "/auth/:path*", "/api/field/:path*", "/api/analyse/:path*"],
+  matcher: ["/admin/:path*", "/borrower/:path*", "/auth/:path*", "/api/admin/:path*", "/api/borrower/:path*"],
 };
