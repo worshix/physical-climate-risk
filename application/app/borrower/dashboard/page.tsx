@@ -12,7 +12,6 @@ import {
   BarChart3,
 } from "lucide-react";
 
-// ── SPEI / γ helpers ───────────────────────────────────────────────────────────
 function speiLabel(gamma: number): { label: string; color: string; description: string } {
   if (gamma >= 1.5) return {
     label: "Very Wet",
@@ -70,7 +69,6 @@ function scoreLabel(score: number): string {
   return "Needs Attention";
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
 export default async function BorrowerDashboardPage() {
   const session = await getBorrowerSession();
   if (!session) redirect("/auth/login");
@@ -103,8 +101,7 @@ export default async function BorrowerDashboardPage() {
   const field    = borrower.fields[0] ?? null;
   const analysis = field?.analyses[0] ?? null;
 
-  // γ from analysis (real SPEI) or from ECL forecast
-  const gamma  = analysis?.gamma ?? (ecl ? null : null);
+  const gamma   = analysis?.gamma ?? (ecl ? null : null);
   const climate = gamma !== null ? speiLabel(gamma) : null;
 
   let recs: string[] = [];
@@ -117,9 +114,9 @@ export default async function BorrowerDashboardPage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 sticky top-0 z-10">
+      <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="bg-emerald-600 p-1.5 rounded-lg">
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-1.5 rounded-lg shadow-sm">
             <Leaf className="h-5 w-5 text-white" />
           </div>
           <span className="text-lg font-bold text-slate-900 tracking-tight">AgriFin</span>
@@ -127,18 +124,18 @@ export default async function BorrowerDashboardPage() {
         <div className="flex items-center gap-2">
           {hasField && (
             <Link href="/borrower/field">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs border-slate-200 hover:border-emerald-300 hover:text-emerald-700">
                 <MapPin className="h-4 w-4" /> My Farm
               </Button>
             </Link>
           )}
           <Link href="/borrower/report">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs border-slate-200 hover:border-emerald-300 hover:text-emerald-700">
               <FileText className="h-4 w-4" /> My Report
             </Button>
           </Link>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full">
-            <div className="w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
+            <div className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
               {borrower.name.charAt(0)}
             </div>
             <span className="text-xs font-medium text-slate-700">{borrower.name}</span>
@@ -147,37 +144,46 @@ export default async function BorrowerDashboardPage() {
         </div>
       </nav>
 
-      <main className="flex-1 p-6 md:p-8 max-w-4xl mx-auto w-full space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Welcome, {borrower.name.split(" ")[0]}</h1>
-          <p className="text-slate-500 mt-1 text-sm">
+      {/* Welcome banner */}
+      <div className="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600 px-6 pt-8 pb-14">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-2xl font-bold text-white">Welcome, {borrower.name.split(" ")[0]}</h1>
+          <p className="text-emerald-100 mt-1 text-sm">
             {borrower.district ? `${borrower.district} · ` : ""}{borrower.primaryActivity ?? "AgriFin Borrower"}
           </p>
         </div>
+      </div>
 
-        {/* ── Set up farm CTA (if no field) ────────────────────────────────── */}
+      <main className="flex-1 px-6 pb-10 max-w-4xl mx-auto w-full space-y-5 -mt-8">
+        {/* Set up farm CTA */}
         {!hasField && (
-          <div className="rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-6 flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="font-bold text-emerald-800">Set up your farm to get started</p>
-              <p className="text-sm text-emerald-700">
-                Draw your field boundary to receive your SPEI drought index, farm health score, and personalised recommendations.
-              </p>
-            </div>
-            <Link href="/borrower/onboarding">
-              <Button className="bg-emerald-600 hover:bg-emerald-700 whitespace-nowrap ml-4">
-                Set Up Farm
-              </Button>
-            </Link>
-          </div>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-teal-50 border-l-4 border-l-emerald-500">
+            <CardContent className="flex items-center justify-between p-5">
+              <div className="space-y-1">
+                <p className="font-bold text-emerald-900">Set up your farm to get started</p>
+                <p className="text-sm text-emerald-700">
+                  Draw your field boundary to receive your SPEI drought index, farm health score, and personalised recommendations.
+                </p>
+              </div>
+              <Link href="/borrower/onboarding">
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white whitespace-nowrap ml-4 shadow-sm">
+                  Set Up Farm
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* ── My Loan ── */}
-          <Card className="border-slate-200">
-            <CardHeader className="pb-3">
+        <div className="grid md:grid-cols-2 gap-5">
+          {/* My Loan */}
+          <Card className="border-0 shadow-md overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-blue-400 to-indigo-500" />
+            <CardHeader className="pb-3 pt-5">
               <CardTitle className="text-base font-bold flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-emerald-600" /> My Loan
+                <div className="p-1.5 bg-blue-100 rounded-md">
+                  <CreditCard className="h-3.5 w-3.5 text-blue-600" />
+                </div>
+                My Loan
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -222,11 +228,15 @@ export default async function BorrowerDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* ── SPEI Drought Index ── */}
-          <Card className="border-slate-200">
-            <CardHeader className="pb-3">
+          {/* SPEI Drought Index */}
+          <Card className="border-0 shadow-md overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-emerald-400 to-teal-500" />
+            <CardHeader className="pb-3 pt-5">
               <CardTitle className="text-base font-bold flex items-center gap-2">
-                <CloudSun className="h-4 w-4 text-emerald-600" /> Drought Index (SPEI)
+                <div className="p-1.5 bg-emerald-100 rounded-md">
+                  <CloudSun className="h-3.5 w-3.5 text-emerald-600" />
+                </div>
+                Drought Index (SPEI)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -249,7 +259,7 @@ export default async function BorrowerDashboardPage() {
                   </p>
                   {hasField && (
                     <Link href="/borrower/field">
-                      <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-1">
+                      <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
                         <BarChart3 className="h-3.5 w-3.5" /> View full analysis
                       </Button>
                     </Link>
@@ -273,16 +283,20 @@ export default async function BorrowerDashboardPage() {
           </Card>
         </div>
 
-        {/* ── Field Health ── */}
+        {/* Field Health */}
         {analysis && (
-          <Card className="border-slate-200">
-            <CardHeader className="pb-3">
+          <Card className="border-0 shadow-md overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
+            <CardHeader className="pb-3 pt-5">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-emerald-600" /> Farm Health
+                  <div className="p-1.5 bg-emerald-100 rounded-md">
+                    <Activity className="h-3.5 w-3.5 text-emerald-600" />
+                  </div>
+                  Farm Health
                 </CardTitle>
                 <Link href="/borrower/field">
-                  <Button variant="ghost" size="sm" className="text-xs text-emerald-600">
+                  <Button variant="ghost" size="sm" className="text-xs text-emerald-600 hover:bg-emerald-50">
                     Manage farm →
                   </Button>
                 </Link>
@@ -295,24 +309,28 @@ export default async function BorrowerDashboardPage() {
                   label="Health Score"
                   value={`${Math.round(analysis.agriculturalScore)}/100`}
                   sub={scoreLabel(analysis.agriculturalScore)}
+                  accent="border-l-emerald-400"
                 />
                 <FieldMetric
-                  icon={<Activity className="h-4 w-4 text-emerald-500" />}
+                  icon={<Activity className="h-4 w-4 text-teal-500" />}
                   label="Vegetation (NDVI)"
                   value={analysis.meanNDVI.toFixed(3)}
                   sub={analysis.ndviTrend.replace("_", " ")}
+                  accent="border-l-teal-400"
                 />
                 <FieldMetric
                   icon={<Droplets className="h-4 w-4 text-blue-500" />}
                   label="14-Day Rainfall"
                   value={`${analysis.totalRainfall.toFixed(0)} mm`}
                   sub={analysis.waterStressRisk ? "⚠ Low moisture" : "Normal"}
+                  accent="border-l-blue-400"
                 />
                 <FieldMetric
                   icon={<Thermometer className="h-4 w-4 text-orange-500" />}
                   label="Temperature"
                   value={`${analysis.avgTemperature.toFixed(1)} °C`}
                   sub={analysis.diseaseRisk ? "⚠ Heat risk" : "Normal range"}
+                  accent="border-l-orange-400"
                 />
               </div>
               <p className="text-xs text-slate-400">
@@ -322,18 +340,22 @@ export default async function BorrowerDashboardPage() {
           </Card>
         )}
 
-        {/* ── Recommendations ── */}
+        {/* Recommendations */}
         {recs.length > 0 && (
-          <Card className="border-slate-200">
-            <CardHeader className="pb-3">
+          <Card className="border-0 shadow-md overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
+            <CardHeader className="pb-3 pt-5">
               <CardTitle className="text-base font-bold flex items-center gap-2">
-                <TrendingDown className="h-4 w-4 text-emerald-600" /> Recommendations
+                <div className="p-1.5 bg-amber-100 rounded-md">
+                  <TrendingDown className="h-3.5 w-3.5 text-amber-600" />
+                </div>
+                Recommendations
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
                 {recs.map((rec, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700">
                     <span className="text-emerald-500 font-bold mt-0.5 shrink-0">•</span>
                     {rec}
                   </li>
@@ -348,12 +370,12 @@ export default async function BorrowerDashboardPage() {
 }
 
 function FieldMetric({
-  icon, label, value, sub,
+  icon, label, value, sub, accent,
 }: {
-  icon: React.ReactNode; label: string; value: string; sub: string;
+  icon: React.ReactNode; label: string; value: string; sub: string; accent: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-3 space-y-1">
+    <div className={`rounded-xl border-l-4 ${accent} bg-white shadow-sm p-3 space-y-1`}>
       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
         {icon} {label}
       </div>

@@ -33,7 +33,6 @@ function gammaColor(g: number) {
   return "text-emerald-600";
 }
 
-// ── Simple SVG bar chart ──────────────────────────────────────────────────────
 function BarChart({
   bars,
 }: {
@@ -60,7 +59,6 @@ export default async function PortfolioPage() {
   const session = await getAdminSession();
   if (!session) redirect("/auth/login");
 
-  // Fetch data server-side (mirrors /api/admin/portfolio logic)
   const loans = await prisma.loan.findMany({
     where: { status: { not: "REPAID" } },
     include: {
@@ -72,8 +70,8 @@ export default async function PortfolioPage() {
   const active = loans.filter((l) => l.status === "ACTIVE");
   const defaults = loans.filter((l) => l.status === "DEFAULT");
 
-  const totalEAD       = active.reduce((s, l) => s + l.loanAmount, 0);
-  const totalECL1Year  = active.reduce((s, l) => s + (l.eclForecasts[0]?.ecl1Year ?? 0), 0);
+  const totalEAD         = active.reduce((s, l) => s + l.loanAmount, 0);
+  const totalECL1Year    = active.reduce((s, l) => s + (l.eclForecasts[0]?.ecl1Year ?? 0), 0);
   const totalECLExpected = active.reduce((s, l) => s + (l.eclForecasts[0]?.eclExpected ?? 0), 0);
   const provisioningRate = totalEAD > 0 ? (totalECL1Year / totalEAD) * 100 : 0;
 
@@ -84,11 +82,9 @@ export default async function PortfolioPage() {
     wetRecovery:     active.reduce((s, l) => s + (l.eclForecasts[0]?.eclWetRecovery ?? 0), 0),
   };
 
-  // Rating distribution
   const ratingDist: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   for (const l of active) ratingDist[l.currentRating] = (ratingDist[l.currentRating] ?? 0) + 1;
 
-  // Regime breakdown
   const normalCount = active.filter((l) => (l.eclForecasts[0]?.regimeWeight ?? 0) < 0.4).length;
   const stressCount = active.filter((l) => (l.eclForecasts[0]?.regimeWeight ?? 0) >= 0.4).length;
   const noECLCount  = active.filter((l) => l.eclForecasts.length === 0).length;
@@ -96,40 +92,52 @@ export default async function PortfolioPage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 sticky top-0 z-10">
+      <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="bg-emerald-600 p-1.5 rounded-lg">
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-1.5 rounded-lg shadow-sm">
             <Leaf className="h-5 w-5 text-white" />
           </div>
           <span className="text-lg font-bold text-slate-900 tracking-tight">AgriFin Risk Monitor</span>
-          <Badge className="bg-emerald-50 text-emerald-700 border-none text-xs ml-1">Admin</Badge>
+          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">ADMIN</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           <Link href="/admin/dashboard">
-            <Button variant="ghost" size="sm" className="text-slate-600">Dashboard</Button>
+            <Button variant="ghost" size="sm" className="text-slate-600 hover:text-emerald-700 hover:bg-emerald-50">
+              Dashboard
+            </Button>
           </Link>
           <Link href="/admin/portfolio">
-            <Button variant="ghost" size="sm" className="text-emerald-700 font-semibold">Portfolio</Button>
+            <Button variant="ghost" size="sm" className="text-emerald-700 font-semibold bg-emerald-50 hover:bg-emerald-100">
+              Portfolio
+            </Button>
           </Link>
+          <div className="h-5 w-px bg-slate-200 mx-2" />
           <LogoutButton />
         </div>
       </nav>
 
       <main className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Portfolio Risk Dashboard</h1>
-          <p className="text-slate-500 mt-1">{active.length} active loans · IFRS 9 scenario analysis</p>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-1 h-8 bg-gradient-to-b from-indigo-500 to-blue-500 rounded-full" />
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Portfolio Risk Dashboard</h1>
+          </div>
+          <p className="text-slate-500 mt-1 ml-4">{active.length} active loans · IFRS 9 scenario analysis</p>
         </div>
 
-        {/* ── Summary Cards ── */}
+        {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="border-slate-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5" /> Active Loans
+          <Card className="border-0 shadow-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
+            <CardHeader className="pb-2 pt-5">
+              <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-100 rounded-md">
+                  <Users className="h-3 w-3 text-emerald-600" />
+                </div>
+                Active Loans
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-5">
               <p className="text-3xl font-bold text-slate-900">{active.length}</p>
               {defaults.length > 0 && (
                 <p className="text-xs text-red-500 mt-0.5">{defaults.length} in default</p>
@@ -137,36 +145,48 @@ export default async function PortfolioPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <DollarSign className="h-3.5 w-3.5" /> Total EAD
+          <Card className="border-0 shadow-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-blue-400 to-blue-600" />
+            <CardHeader className="pb-2 pt-5">
+              <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="p-1.5 bg-blue-100 rounded-md">
+                  <DollarSign className="h-3 w-3 text-blue-600" />
+                </div>
+                Total EAD
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-5">
               <p className="text-3xl font-bold text-slate-900">${totalEAD.toLocaleString()}</p>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <TrendingDown className="h-3.5 w-3.5" /> 1-Year ECL
+          <Card className="border-0 shadow-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-indigo-400 to-indigo-600" />
+            <CardHeader className="pb-2 pt-5">
+              <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="p-1.5 bg-indigo-100 rounded-md">
+                  <TrendingDown className="h-3 w-3 text-indigo-600" />
+                </div>
+                1-Year ECL
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-5">
               <p className="text-3xl font-bold text-slate-900">${totalECL1Year.toFixed(2)}</p>
               <p className="text-xs text-slate-400 mt-0.5">{provisioningRate.toFixed(1)}% provisioning rate</p>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <AlertTriangle className="h-3.5 w-3.5" /> Expected ECL
+          <Card className="border-0 shadow-sm overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-red-400 to-red-600" />
+            <CardHeader className="pb-2 pt-5">
+              <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="p-1.5 bg-red-100 rounded-md">
+                  <AlertTriangle className="h-3 w-3 text-red-600" />
+                </div>
+                Expected ECL
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-5">
               <p className="text-3xl font-bold text-red-700">${totalECLExpected.toFixed(2)}</p>
               <p className="text-xs text-slate-400 mt-0.5">Probability-weighted</p>
             </CardContent>
@@ -174,11 +194,14 @@ export default async function PortfolioPage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* ── Scenario ECL Chart ── */}
-          <Card className="border-slate-200 md:col-span-2">
+          {/* Scenario ECL Chart */}
+          <Card className="border-0 shadow-sm md:col-span-2">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-bold flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-emerald-600" /> Portfolio ECL by Scenario (1-Year)
+                <div className="p-1.5 bg-indigo-100 rounded-md">
+                  <BarChart3 className="h-3.5 w-3.5 text-indigo-600" />
+                </div>
+                Portfolio ECL by Scenario (1-Year)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -188,20 +211,20 @@ export default async function PortfolioPage() {
                 <>
                   <BarChart
                     bars={[
-                      { label: "Wet Recovery (8%)",    value: scenarioTotals.wetRecovery,     color: "#10b981" },
-                      { label: "Baseline (55%)",        value: scenarioTotals.baseline,        color: "#3b82f6" },
-                      { label: "Moderate Drought (25%)",value: scenarioTotals.moderateDrought, color: "#f59e0b" },
-                      { label: "Severe Drought (12%)",  value: scenarioTotals.severeDrought,   color: "#ef4444" },
+                      { label: "Wet Recovery (8%)",     value: scenarioTotals.wetRecovery,     color: "#10b981" },
+                      { label: "Baseline (55%)",         value: scenarioTotals.baseline,        color: "#3b82f6" },
+                      { label: "Moderate Drought (25%)", value: scenarioTotals.moderateDrought, color: "#f59e0b" },
+                      { label: "Severe Drought (12%)",   value: scenarioTotals.severeDrought,   color: "#ef4444" },
                     ]}
                   />
                   <div className="mt-4 grid grid-cols-4 gap-2 text-xs">
                     {[
-                      { label: "Baseline",         val: scenarioTotals.baseline,        pct: "55%", color: "text-blue-600" },
-                      { label: "Moderate Drought", val: scenarioTotals.moderateDrought, pct: "25%", color: "text-amber-600" },
-                      { label: "Severe Drought",   val: scenarioTotals.severeDrought,   pct: "12%", color: "text-red-600" },
-                      { label: "Wet Recovery",     val: scenarioTotals.wetRecovery,     pct: "8%",  color: "text-emerald-600" },
-                    ].map(({ label, val, pct, color }) => (
-                      <div key={label} className="rounded-lg bg-slate-50 p-2">
+                      { label: "Baseline",         val: scenarioTotals.baseline,        pct: "55%", color: "text-blue-600",    bg: "bg-blue-50" },
+                      { label: "Moderate Drought", val: scenarioTotals.moderateDrought, pct: "25%", color: "text-amber-600",   bg: "bg-amber-50" },
+                      { label: "Severe Drought",   val: scenarioTotals.severeDrought,   pct: "12%", color: "text-red-600",     bg: "bg-red-50" },
+                      { label: "Wet Recovery",     val: scenarioTotals.wetRecovery,     pct: "8%",  color: "text-emerald-600", bg: "bg-emerald-50" },
+                    ].map(({ label, val, pct, color, bg }) => (
+                      <div key={label} className={`rounded-lg ${bg} p-2`}>
                         <p className={`font-bold ${color}`}>${val.toFixed(2)}</p>
                         <p className="text-slate-500">{label}</p>
                         <p className="text-slate-400">{pct}</p>
@@ -213,12 +236,15 @@ export default async function PortfolioPage() {
             </CardContent>
           </Card>
 
-          {/* ── Regime Breakdown + Rating Distribution ── */}
+          {/* Regime Breakdown + Rating Distribution */}
           <div className="space-y-4">
-            <Card className="border-slate-200">
+            <Card className="border-0 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-emerald-600" /> Regime Breakdown
+                  <div className="p-1.5 bg-emerald-100 rounded-md">
+                    <Activity className="h-3.5 w-3.5 text-emerald-600" />
+                  </div>
+                  Regime Breakdown
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -226,20 +252,23 @@ export default async function PortfolioPage() {
                   <p className="text-xs text-slate-400 italic">No active loans.</p>
                 ) : (
                   <>
-                    <RegimeBar label="Normal / Wet" count={normalCount} total={active.length} color="bg-emerald-500" />
+                    <RegimeBar label="Normal / Wet"   count={normalCount} total={active.length} color="bg-emerald-500" />
                     <RegimeBar label="Drought Stress" count={stressCount} total={active.length} color="bg-red-500" />
                     {noECLCount > 0 && (
-                      <RegimeBar label="No ECL data" count={noECLCount} total={active.length} color="bg-slate-300" />
+                      <RegimeBar label="No ECL data"  count={noECLCount}  total={active.length} color="bg-slate-300" />
                     )}
                   </>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200">
+            <Card className="border-0 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-emerald-600" /> Rating Distribution
+                  <div className="p-1.5 bg-blue-100 rounded-md">
+                    <BarChart3 className="h-3.5 w-3.5 text-blue-600" />
+                  </div>
+                  Rating Distribution
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1.5">
@@ -264,11 +293,14 @@ export default async function PortfolioPage() {
           </div>
         </div>
 
-        {/* ── Loan Table ── */}
-        <Card className="border-slate-200">
+        {/* Loan Table */}
+        <Card className="border-0 shadow-sm">
           <CardHeader className="border-b border-slate-100 pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2">
-              <Activity className="h-4 w-4 text-emerald-600" /> Active Loan Book
+              <div className="p-1.5 bg-emerald-100 rounded-md">
+                <Activity className="h-3.5 w-3.5 text-emerald-600" />
+              </div>
+              Active Loan Book
             </CardTitle>
           </CardHeader>
           {active.length === 0 ? (
@@ -289,7 +321,7 @@ export default async function PortfolioPage() {
                   {active.map((l) => {
                     const ecl = l.eclForecasts[0] ?? null;
                     return (
-                      <tr key={l.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                      <tr key={l.id} className="border-b border-slate-50 hover:bg-emerald-50/40 transition-colors">
                         <td className="px-6 py-3 font-semibold text-slate-900">{l.borrower.name}</td>
                         <td className="px-4 py-3 text-slate-500">{l.borrower.district ?? "—"}</td>
                         <td className="px-4 py-3 font-mono text-xs text-slate-500">{l.loanRef}</td>
@@ -315,7 +347,7 @@ export default async function PortfolioPage() {
                         </td>
                         <td className="px-4 py-3">
                           <Link href={`/admin/borrowers/${l.borrower.id}`}>
-                            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-900">
+                            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-emerald-700 hover:bg-emerald-50">
                               <ChevronRight className="h-4 w-4" />
                             </Button>
                           </Link>
