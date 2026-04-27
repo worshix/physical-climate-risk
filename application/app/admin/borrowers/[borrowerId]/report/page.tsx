@@ -89,7 +89,7 @@ export default async function BorrowerReportPage({
         <div className="border-b-2 border-emerald-600 pb-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">AgriFin Risk Monitor</p>
+              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Mitiga Global Analytics Engine</p>
               <h1 className="text-2xl font-bold text-slate-900">IFRS 9 ECL Credit Risk Report</h1>
               <p className="text-slate-500 mt-1">{borrower.name} · {borrower.district ?? "—"}</p>
             </div>

@@ -122,7 +122,7 @@ export default function SignupPage() {
             Create Your Account
           </CardTitle>
           <CardDescription className="text-slate-500">
-            AgriFin Risk Monitor — Farmer Registration
+            Mitiga Global Analytics Engine — Farmer Registration
           </CardDescription>
         </CardHeader>
 
@@ -275,7 +275,7 @@ export default function SignupPage() {
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              By registering, you consent to AgriFin Risk Monitor collecting your farm and climate data
+              By registering, you consent to Mitiga Global Analytics Engine collecting your farm and climate data
               for IFRS 9 credit risk assessment purposes. Data is held securely and used only for
               credit monitoring.
             </p>

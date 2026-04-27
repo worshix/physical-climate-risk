@@ -62,12 +62,6 @@ function ratingColor(r: number) {
   return "bg-emerald-100 text-emerald-700";
 }
 
-function scoreLabel(score: number): string {
-  if (score >= 75) return "Excellent";
-  if (score >= 50) return "Good";
-  if (score >= 25) return "Moderate Concern";
-  return "Needs Attention";
-}
 
 export default async function BorrowerDashboardPage() {
   const session = await getBorrowerSession();
@@ -119,7 +113,7 @@ export default async function BorrowerDashboardPage() {
           <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-1.5 rounded-lg shadow-sm">
             <Leaf className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-slate-900 tracking-tight">AgriFin</span>
+          <span className="text-lg font-bold text-slate-900 tracking-tight">Mitiga</span>
         </div>
         <div className="flex items-center gap-2">
           {hasField && (
@@ -149,7 +143,7 @@ export default async function BorrowerDashboardPage() {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold text-white">Welcome, {borrower.name.split(" ")[0]}</h1>
           <p className="text-emerald-100 mt-1 text-sm">
-            {borrower.district ? `${borrower.district} · ` : ""}{borrower.primaryActivity ?? "AgriFin Borrower"}
+            {borrower.district ? `${borrower.district} · ` : ""}{borrower.primaryActivity ?? "Mitiga Borrower"}
           </p>
         </div>
       </div>
@@ -303,14 +297,7 @@ export default async function BorrowerDashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <FieldMetric
-                  icon={<Activity className="h-4 w-4 text-emerald-500" />}
-                  label="Health Score"
-                  value={`${Math.round(analysis.agriculturalScore)}/100`}
-                  sub={scoreLabel(analysis.agriculturalScore)}
-                  accent="border-l-emerald-400"
-                />
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 <FieldMetric
                   icon={<Activity className="h-4 w-4 text-teal-500" />}
                   label="Vegetation (NDVI)"

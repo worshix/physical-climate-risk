@@ -9,6 +9,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import {
   ArrowLeft, Leaf, Activity, TrendingDown,
   Droplets, Thermometer, BarChart3, AlertTriangle, MapPin,
+  FileText, ShieldAlert, ShieldCheck, ShieldQuestion,
 } from "lucide-react";
 import FieldMapClient from "@/components/Map/FieldMapClient";
 
@@ -22,6 +23,71 @@ function gammaColor(gamma: number) {
   if (gamma < -1.5) return "text-red-600";
   if (gamma < 0) return "text-amber-600";
   return "text-emerald-600";
+}
+
+type RecSeverity = "high" | "medium" | "low";
+interface CreditRec { severity: RecSeverity; text: string }
+
+function buildCreditOfficerRecs(
+  analysis: { agriculturalScore: number; gamma: number; regimeWeight: number; waterStressRisk: boolean; diseaseRisk: boolean; ndviTrend: string },
+  ecl: { onePeriodPD: number; ecl1Year: number } | null,
+  loanAmount: number | null,
+): CreditRec[] {
+  const recs: CreditRec[] = [];
+  const score = Math.round(analysis.agriculturalScore);
+
+  // Agri score
+  if (score < 25) {
+    recs.push({ severity: "high", text: `Farm health score is critically low (${score}/100). Consider immediate loan restructuring or additional collateral. Initiate a physical field inspection.` });
+  } else if (score < 50) {
+    recs.push({ severity: "medium", text: `Moderate agricultural stress (${score}/100). Increase monitoring to monthly reviews and consider reclassifying to IFRS 9 Stage 2.` });
+  } else if (score < 75) {
+    recs.push({ severity: "low", text: `Farm health is below optimal (${score}/100). Schedule a quarterly field review and verify loan stage classification at next assessment.` });
+  } else {
+    recs.push({ severity: "low", text: `Strong farm health signal (${score}/100). Loan is performing well under current climate conditions.` });
+  }
+
+  // SPEI / drought
+  if (analysis.gamma < -1.5) {
+    recs.push({ severity: "high", text: `Severe drought detected (γ = ${analysis.gamma.toFixed(2)}). Apply M_stress migration matrix with dominant weighting. Evaluate borrower's debt-service capacity and consider Stage 2/3 reclassification.` });
+  } else if (analysis.gamma < -1.0) {
+    recs.push({ severity: "medium", text: `Moderate drought conditions (γ = ${analysis.gamma.toFixed(2)}). Factor drought regime into next rating review. Monitor crop yields at harvest.` });
+  } else if (analysis.gamma < 0) {
+    recs.push({ severity: "low", text: `Mild dryness observed (γ = ${analysis.gamma.toFixed(2)}). Continue standard monitoring. Include drought signal in next ECL computation.` });
+  } else {
+    recs.push({ severity: "low", text: `Climate conditions are normal to wet (γ = ${analysis.gamma.toFixed(2)}). Drought risk is low — maintain standard provisioning.` });
+  }
+
+  // Regime weight
+  if (analysis.regimeWeight >= 0.7) {
+    recs.push({ severity: "high", text: `Drought stress regime is dominant (ω = ${(analysis.regimeWeight * 100).toFixed(0)}%). Use M_stress-weighted blended matrix for all ECL computations this period.` });
+  }
+
+  // PD
+  if (ecl) {
+    if (ecl.onePeriodPD > 0.20) {
+      recs.push({ severity: "high", text: `1Q probability of default exceeds 20% (${(ecl.onePeriodPD * 100).toFixed(1)}%). Escalate to senior credit committee for immediate review.` });
+    } else if (ecl.onePeriodPD > 0.10) {
+      recs.push({ severity: "medium", text: `Elevated 1Q probability of default (${(ecl.onePeriodPD * 100).toFixed(1)}%). Increase monitoring frequency to monthly check-ins.` });
+    }
+
+    if (loanAmount && ecl.ecl1Year > loanAmount * 0.10) {
+      recs.push({ severity: "medium", text: `1-Year ECL ($${ecl.ecl1Year.toFixed(2)}) exceeds 10% of outstanding loan balance. Review provisioning adequacy with risk management.` });
+    }
+  }
+
+  // Satellite flags
+  if (analysis.ndviTrend === "DECLINING") {
+    recs.push({ severity: "medium", text: "NDVI is declining — vegetation cover is deteriorating. This may signal early crop failure. Prioritise a field visit within the next 2 weeks." });
+  }
+  if (analysis.waterStressRisk) {
+    recs.push({ severity: "medium", text: "Water stress risk flagged. Verify the farmer's irrigation access and recommend drought-resistant crop varieties for the next planting season." });
+  }
+  if (analysis.diseaseRisk) {
+    recs.push({ severity: "medium", text: "Disease risk detected from temperature anomaly. Arrange a field visit within 30 days to assess crop health and advise on crop protection." });
+  }
+
+  return recs;
 }
 
 export default async function FieldViewPage({
@@ -59,6 +125,10 @@ export default async function FieldViewPage({
     try { recs = JSON.parse(analysis.recommendations); } catch { /* ignore */ }
   }
 
+  const creditRecs = analysis
+    ? buildCreditOfficerRecs(analysis, ecl, loan?.loanAmount ?? null)
+    : [];
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       {/* Navbar */}
@@ -77,7 +147,14 @@ export default async function FieldViewPage({
             <span className="text-sm text-slate-400 ml-2">— {field.borrower.name}</span>
           </div>
         </div>
-        <LogoutButton />
+        <div className="flex items-center gap-3">
+          <Link href={`/admin/borrowers/${field.borrower.id}/report`}>
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 gap-2 text-white">
+              <FileText className="h-4 w-4" /> Generate Report
+            </Button>
+          </Link>
+          <LogoutButton />
+        </div>
       </nav>
 
       <main className="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full space-y-6">
@@ -242,7 +319,7 @@ export default async function FieldViewPage({
               )}
             </div>
 
-            {/* Recommendations */}
+            {/* Agronomic Recommendations */}
             {recs.length > 0 && (
               <Card className="border-slate-200">
                 <CardHeader className="pb-3">
@@ -258,6 +335,54 @@ export default async function FieldViewPage({
                         {rec}
                       </li>
                     ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Credit Officer Assessment */}
+            {creditRecs.length > 0 && (
+              <Card className="border-slate-200">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-bold flex items-center gap-2">
+                      <ShieldAlert className="h-4 w-4 text-indigo-600" /> Credit Officer Assessment
+                    </CardTitle>
+                    <Link href={`/admin/borrowers/${field.borrower.id}/report`}>
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8">
+                        <FileText className="h-3.5 w-3.5" /> Full Report
+                      </Button>
+                    </Link>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Risk-based recommendations for internal credit review. Not visible to the farmer.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {creditRecs.map((rec, i) => {
+                      const Icon = rec.severity === "high"
+                        ? ShieldAlert
+                        : rec.severity === "medium"
+                        ? ShieldQuestion
+                        : ShieldCheck;
+                      const color = rec.severity === "high"
+                        ? "text-red-600 bg-red-50 border-red-100"
+                        : rec.severity === "medium"
+                        ? "text-amber-700 bg-amber-50 border-amber-100"
+                        : "text-emerald-700 bg-emerald-50 border-emerald-100";
+                      const iconColor = rec.severity === "high"
+                        ? "text-red-500"
+                        : rec.severity === "medium"
+                        ? "text-amber-500"
+                        : "text-emerald-500";
+                      return (
+                        <li key={i} className={`flex items-start gap-3 text-sm rounded-lg border px-4 py-3 ${color}`}>
+                          <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${iconColor}`} />
+                          {rec.text}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </CardContent>
               </Card>

@@ -87,7 +87,7 @@ export default async function AdminDashboardPage() {
           <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-1.5 rounded-lg shadow-sm">
             <Leaf className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-slate-900 tracking-tight">AgriFin Risk Monitor</span>
+          <span className="text-lg font-bold text-slate-900 tracking-tight">Mitiga Global Analytics Engine</span>
           <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">ADMIN</span>
         </div>
         <div className="flex items-center gap-1">

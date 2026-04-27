@@ -62,7 +62,7 @@ export default function LoginPage() {
           <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm">
             <Leaf className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-bold text-white tracking-tight">AgriFin Risk Monitor</span>
+          <span className="text-xl font-bold text-white tracking-tight">Mitiga Global Analytics Engine</span>
         </div>
         <div className="relative space-y-8">
           <div>
@@ -106,7 +106,7 @@ export default function LoginPage() {
             <CardHeader className="space-y-1 text-center pb-6 pt-8">
               <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">Welcome back</CardTitle>
               <CardDescription className="text-slate-500">
-                Sign in to your AgriFin account
+                Sign in to your Mitiga account
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8">

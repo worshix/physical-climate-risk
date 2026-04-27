@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Leaf, ArrowLeft, RefreshCw, Loader2, Activity,
-  Droplets, Thermometer, TrendingDown, BarChart3,
+  Droplets, Thermometer, TrendingDown,
   CheckCircle2, AlertTriangle, CloudSun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,18 +64,6 @@ function speiColor(gamma: number): string {
   return "bg-red-100 text-red-700";
 }
 
-function scoreColor(score: number): string {
-  if (score >= 75) return "text-emerald-600";
-  if (score >= 50) return "text-blue-600";
-  if (score >= 25) return "text-amber-600";
-  return "text-red-600";
-}
-
-function healthLabel(status: string): string {
-  if (status === "HEALTHY") return "Healthy";
-  if (status === "MODERATE_STRESS") return "Moderate Stress";
-  return "High Stress";
-}
 
 export default function BorrowerFieldPage() {
   const router = useRouter();
@@ -208,7 +196,7 @@ export default function BorrowerFieldPage() {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {/* SPEI / Drought Index */}
-            <Card className="border-slate-200">
+            <Card className="border-slate-200 md:col-span-2">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-bold flex items-center gap-2">
                   <CloudSun className="h-4 w-4 text-emerald-600" /> Drought Index (SPEI-3)
@@ -230,73 +218,20 @@ export default function BorrowerFieldPage() {
                       3 years of historical rainfall and temperature data. Values below −1.0 indicate
                       drought stress that can affect your crop yields and credit assessment.
                     </p>
-                    <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 space-y-1 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Regime weight ω(γ)</span>
-                        <span className="font-mono font-semibold">{(analysis.regimeWeight * 100).toFixed(0)}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Drought stress probability</span>
-                        <span className={`font-semibold ${analysis.regimeWeight >= 0.5 ? "text-red-600" : "text-emerald-600"}`}>
-                          {analysis.regimeWeight >= 0.5 ? "High" : "Low"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-xs text-slate-400 space-y-0.5">
-                      <p className="font-semibold text-slate-500">WMO SPEI Classification</p>
-                      <p>≥ 0.0: Normal / Wet &nbsp;|&nbsp; −1.0 to 0: Mildly Dry</p>
-                      <p>−1.0 to −1.5: Moderate Drought &nbsp;|&nbsp; &lt; −1.5: Severe Drought</p>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">
-                    No analysis yet. Click &quot;Re-analyse&quot; to fetch your SPEI drought index.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Agricultural Score */}
-            <Card className="border-slate-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-emerald-600" /> Farm Health Score
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {analysis ? (
-                  <>
-                    <div className="flex items-end gap-3">
-                      <span className={`text-5xl font-black ${scoreColor(analysis.agriculturalScore)}`}>
-                        {Math.round(analysis.agriculturalScore)}
-                      </span>
-                      <span className="text-slate-400 text-lg mb-1">/ 100</span>
-                      <Badge variant="outline" className="mb-1 text-xs">
-                        {healthLabel(analysis.healthStatus)}
-                      </Badge>
-                    </div>
-
-                    {/* Score bar */}
-                    <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${analysis.agriculturalScore >= 65 ? "bg-emerald-500" : analysis.agriculturalScore >= 40 ? "bg-amber-500" : "bg-red-500"}`}
-                        style={{ width: `${analysis.agriculturalScore}%` }}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
                       <Metric icon={<Activity className="h-3.5 w-3.5 text-emerald-500" />} label="NDVI" value={analysis.meanNDVI.toFixed(3)} sub={analysis.ndviTrend} />
                       <Metric icon={<Droplets className="h-3.5 w-3.5 text-blue-500" />} label="14-day Rainfall" value={`${analysis.totalRainfall.toFixed(0)} mm`} sub={analysis.waterStressRisk ? "⚠ Low moisture" : "Normal"} />
                       <Metric icon={<Thermometer className="h-3.5 w-3.5 text-orange-500" />} label="Temperature" value={`${analysis.avgTemperature.toFixed(1)} °C`} sub={analysis.diseaseRisk ? "⚠ Heat risk" : "Normal"} />
                       <Metric icon={<CloudSun className="h-3.5 w-3.5 text-slate-500" />} label="Data source" value="SPEI-3" sub="Open-Meteo archive" />
                     </div>
-
                     <p className="text-xs text-slate-400">
                       Last analysed {new Date(analysis.createdAt).toLocaleString()}.
                     </p>
                   </>
                 ) : (
-                  <p className="text-sm text-slate-400 italic">Run an analysis to see your farm health score.</p>
+                  <p className="text-sm text-slate-400 italic">
+                    No analysis yet. Click &quot;Re-analyse&quot; to fetch your SPEI drought index.
+                  </p>
                 )}
               </CardContent>
             </Card>

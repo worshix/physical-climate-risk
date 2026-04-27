@@ -12,7 +12,7 @@ export default function LandingPage() {
           <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-1.5 rounded-lg shadow-sm">
             <Leaf className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-bold text-slate-900 tracking-tight">AgriFin Risk Monitor</span>
+          <span className="text-xl font-bold text-slate-900 tracking-tight">Mitiga Global Analytics Engine</span>
         </div>
         <Link href="/auth/login">
           <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">Sign In</Button>
@@ -85,7 +85,7 @@ export default function LandingPage() {
         <section className="bg-white py-20 px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-slate-900 mb-4">How AgriFin Risk Monitor works</h2>
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">How Mitiga Global Analytics Engine works</h2>
               <p className="text-slate-500 max-w-xl mx-auto">
                 From satellite NDVI to IFRS 9 provisioning in one integrated workflow.
               </p>
@@ -173,10 +173,10 @@ export default function LandingPage() {
           <div className="bg-emerald-600 p-1 rounded">
             <Leaf className="h-3 w-3 text-white" />
           </div>
-          <span className="font-semibold text-slate-300">AgriFin Risk Monitor</span>
+          <span className="font-semibold text-slate-300">Mitiga Global Analytics Engine</span>
         </div>
         <p>IFRS 9 Physical Climate Risk Platform · Zimbabwe Microfinance Sector</p>
-        <p className="mt-1">© {new Date().getFullYear()} AgriFin Risk Monitor. Research prototype.</p>
+        <p className="mt-1">© {new Date().getFullYear()} Mitiga Global Analytics Engine. Research prototype.</p>
       </footer>
     </div>
   );

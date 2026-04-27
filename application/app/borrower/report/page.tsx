@@ -30,12 +30,6 @@ function ratingLabel(r: number) {
   return { 1: "Critical", 2: "Needs Attention", 3: "Satisfactory", 4: "Good", 5: "Excellent" }[r] ?? "Unknown";
 }
 
-function scoreLabel(s: number) {
-  if (s >= 75) return "Excellent";
-  if (s >= 50) return "Good";
-  if (s >= 25) return "Moderate Concern";
-  return "Needs Attention";
-}
 
 export default async function BorrowerReportPage() {
   const session = await getBorrowerSession();
@@ -103,7 +97,7 @@ export default async function BorrowerReportPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Leaf className="h-5 w-5 text-emerald-600" />
-                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">AgriFin Risk Monitor</span>
+                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Mitiga Global Analytics Engine</span>
               </div>
               <h1 className="text-2xl font-bold text-slate-900">My Loan & Farm Status Report</h1>
               <p className="text-slate-500 mt-1">{borrower.name} · {borrower.district ?? "—"}</p>
@@ -179,7 +173,6 @@ export default async function BorrowerReportPage() {
           {analysis ? (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-x-8 gap-y-3">
-                <RowItem label="Overall Health Score" value={`${Math.round(analysis.agriculturalScore)}/100 — ${scoreLabel(analysis.agriculturalScore)}`} bold />
                 <RowItem label="Vegetation Health (NDVI)" value={analysis.meanNDVI.toFixed(3)} mono />
                 <RowItem label="Vegetation Trend" value={analysis.ndviTrend.replace("_", " ")} />
                 <RowItem label="14-Day Rainfall"   value={`${analysis.totalRainfall.toFixed(1)} mm`} />

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AgriFin Risk Monitor",
+  title: "Mitiga Global Analytics Engine",
   description: "IFRS 9 ECL credit risk platform for agricultural microfinance institutions.",
 };
 
