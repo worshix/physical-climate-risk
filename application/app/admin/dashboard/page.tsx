@@ -7,22 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LogoutButton } from "@/components/LogoutButton";
 import {
-  Leaf, Plus, Users, TrendingDown, DollarSign,
-  AlertTriangle, ChevronRight, Activity,
+  Leaf, Plus, Users, Activity, ChevronRight,
+  CloudSun, AlertTriangle, CheckCircle2,
 } from "lucide-react";
 
-function ratingBadge(rating: number) {
-  if (rating === 1) return <Badge className="bg-red-100 text-red-700 border-none">Rating 1 — Default</Badge>;
-  if (rating === 2) return <Badge className="bg-orange-100 text-orange-700 border-none">Rating 2 — At Risk</Badge>;
-  if (rating === 3) return <Badge className="bg-amber-100 text-amber-700 border-none">Rating 3 — Watch</Badge>;
-  if (rating === 4) return <Badge className="bg-blue-100 text-blue-700 border-none">Rating 4 — Good</Badge>;
-  return <Badge className="bg-emerald-100 text-emerald-700 border-none">Rating 5 — Excellent</Badge>;
-}
-
-function regimeBadge(omega: number) {
-  if (omega >= 0.7) return <Badge className="bg-red-100 text-red-700 border-none">Drought Stress</Badge>;
-  if (omega >= 0.4) return <Badge className="bg-amber-100 text-amber-700 border-none">Moderate Stress</Badge>;
-  return <Badge className="bg-emerald-100 text-emerald-700 border-none">Normal</Badge>;
+function speiLabel(gamma: number): { label: string; color: string } {
+  if (gamma >= 1.0)  return { label: "Wet",             color: "bg-blue-100 text-blue-700" };
+  if (gamma >= 0.0)  return { label: "Normal",          color: "bg-emerald-100 text-emerald-700" };
+  if (gamma >= -1.0) return { label: "Mildly Dry",      color: "bg-yellow-100 text-yellow-700" };
+  if (gamma >= -1.5) return { label: "Moderate Drought", color: "bg-amber-100 text-amber-700" };
+  return               { label: "Severe Drought",       color: "bg-red-100 text-red-700" };
 }
 
 export default async function AdminDashboardPage() {
@@ -37,47 +31,20 @@ export default async function AdminDashboardPage() {
   const borrowers = await prisma.user.findMany({
     where: { role: "BORROWER" },
     include: {
-      loans: {
-        where: { status: { not: "REPAID" } },
+      fields: {
         include: {
-          eclForecasts: { orderBy: { computedAt: "desc" }, take: 1 },
+          analyses: { orderBy: { createdAt: "desc" }, take: 1 },
         },
+        orderBy: { createdAt: "desc" },
+        take: 1,
       },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  const allActiveLoans = borrowers.flatMap((b) =>
-    b.loans.filter((l) => l.status === "ACTIVE")
-  );
-  const totalEAD = allActiveLoans.reduce((s, l) => s + l.loanAmount, 0);
-  const totalECL1Year = allActiveLoans.reduce((s, l) => {
-    const ecl = l.eclForecasts[0];
-    return s + (ecl?.ecl1Year ?? 0);
-  }, 0);
-  const totalDefaulted = borrowers.flatMap((b) => b.loans).filter((l) => l.status === "DEFAULT").length;
-  const provisioningRate = totalEAD > 0 ? (totalECL1Year / totalEAD) * 100 : 0;
-
-  const loanRows = borrowers.flatMap((b) =>
-    b.loans.map((l) => {
-      const ecl = l.eclForecasts[0];
-      return {
-        borrowerId: b.id,
-        borrowerName: b.name,
-        district: b.district ?? "—",
-        loanRef: l.loanRef,
-        loanId: l.id,
-        rating: l.currentRating,
-        ead: l.loanAmount,
-        status: l.status,
-        gamma: ecl?.currentGamma ?? null,
-        omega: ecl?.regimeWeight ?? null,
-        pd1Q: ecl?.onePeriodPD ?? null,
-        ecl1Year: ecl?.ecl1Year ?? null,
-        stage: l.stage,
-      };
-    })
-  );
+  const withField    = borrowers.filter((b) => b.fields.length > 0).length;
+  const withAnalysis = borrowers.filter((b) => (b.fields[0]?.analyses.length ?? 0) > 0).length;
+  const inDrought    = borrowers.filter((b) => (b.fields[0]?.analyses[0]?.gamma ?? 1) < -1.0).length;
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -118,10 +85,10 @@ export default async function AdminDashboardPage() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <div className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full" />
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Portfolio Overview</h1>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Borrower Overview</h1>
             </div>
             <p className="text-slate-500 mt-1 ml-4">
-              {borrowers.length} registered borrowers · {allActiveLoans.length} active loans
+              {borrowers.length} registered borrowers · {withAnalysis} with field analysis
             </p>
           </div>
           <Link href="/admin/borrowers/new">
@@ -140,7 +107,7 @@ export default async function AdminDashboardPage() {
                 <div className="p-1.5 bg-emerald-100 rounded-md">
                   <Users className="h-3 w-3 text-emerald-600" />
                 </div>
-                Active Borrowers
+                Borrowers
               </CardTitle>
             </CardHeader>
             <CardContent className="pb-5">
@@ -149,35 +116,32 @@ export default async function AdminDashboardPage() {
           </Card>
 
           <Card className="border-0 shadow-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-blue-400 to-blue-600" />
+            <div className="h-1 bg-gradient-to-r from-teal-400 to-teal-600" />
             <CardHeader className="pb-2 pt-5">
               <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <div className="p-1.5 bg-blue-100 rounded-md">
-                  <DollarSign className="h-3 w-3 text-blue-600" />
+                <div className="p-1.5 bg-teal-100 rounded-md">
+                  <Activity className="h-3 w-3 text-teal-600" />
                 </div>
-                Total EAD
+                With Field
               </CardTitle>
             </CardHeader>
             <CardContent className="pb-5">
-              <p className="text-3xl font-bold text-slate-900">${totalEAD.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-slate-900">{withField}</p>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-sm overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-indigo-400 to-indigo-600" />
+            <div className="h-1 bg-gradient-to-r from-blue-400 to-blue-600" />
             <CardHeader className="pb-2 pt-5">
               <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <div className="p-1.5 bg-indigo-100 rounded-md">
-                  <TrendingDown className="h-3 w-3 text-indigo-600" />
+                <div className="p-1.5 bg-blue-100 rounded-md">
+                  <CheckCircle2 className="h-3 w-3 text-blue-600" />
                 </div>
-                1-Year ECL
+                Analysed
               </CardTitle>
             </CardHeader>
             <CardContent className="pb-5">
-              <p className="text-3xl font-bold text-slate-900">${totalECL1Year.toFixed(2)}</p>
-              <p className="text-xs text-slate-400 mt-0.5">
-                {provisioningRate.toFixed(1)}% provisioning rate
-              </p>
+              <p className="text-3xl font-bold text-slate-900">{withAnalysis}</p>
             </CardContent>
           </Card>
 
@@ -188,24 +152,25 @@ export default async function AdminDashboardPage() {
                 <div className="p-1.5 bg-red-100 rounded-md">
                   <AlertTriangle className="h-3 w-3 text-red-600" />
                 </div>
-                In Default
+                Drought Stress
               </CardTitle>
             </CardHeader>
             <CardContent className="pb-5">
-              <p className="text-3xl font-bold text-red-600">{totalDefaulted}</p>
+              <p className="text-3xl font-bold text-red-600">{inDrought}</p>
+              <p className="text-xs text-slate-400 mt-0.5">SPEI &lt; −1.0</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Loan Table */}
-        {loanRows.length === 0 ? (
+        {/* Borrower List */}
+        {borrowers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl border border-emerald-100 text-center">
             <div className="bg-white p-6 rounded-full mb-6 shadow-md">
               <Users className="h-12 w-12 text-emerald-500" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">No borrowers yet</h2>
             <p className="text-slate-500 mb-8 max-w-sm">
-              Register your first borrower to begin tracking credit risk and ECL.
+              Register your first borrower to begin tracking their farm health and climate risk.
             </p>
             <Link href="/admin/borrowers/new">
               <Button className="bg-emerald-600 hover:bg-emerald-700 text-white h-12 px-8 text-lg font-semibold rounded-xl shadow-md">
@@ -218,9 +183,9 @@ export default async function AdminDashboardPage() {
             <CardHeader className="border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <div className="p-1.5 bg-emerald-100 rounded-md">
-                  <Activity className="h-3.5 w-3.5 text-emerald-600" />
+                  <Users className="h-3.5 w-3.5 text-emerald-600" />
                 </div>
-                Active Loan Book
+                Registered Borrowers
               </CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
@@ -229,47 +194,63 @@ export default async function AdminDashboardPage() {
                   <tr className="border-b border-slate-100 bg-slate-50">
                     <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Borrower</th>
                     <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">District</th>
-                    <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Loan Ref</th>
-                    <th className="text-center px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Rating</th>
-                    <th className="text-right px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">EAD ($)</th>
-                    <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Regime</th>
-                    <th className="text-right px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">1Q PD</th>
-                    <th className="text-right px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">1-Yr ECL ($)</th>
-                    <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Stage</th>
+                    <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Activity</th>
+                    <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Field</th>
+                    <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">SPEI-3</th>
+                    <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Climate Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Last Analysed</th>
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {loanRows.map((row) => (
-                    <tr key={row.loanId} className="border-b border-slate-50 hover:bg-emerald-50/40 transition-colors">
-                      <td className="px-6 py-4 font-semibold text-slate-900">{row.borrowerName}</td>
-                      <td className="px-4 py-4 text-slate-500">{row.district}</td>
-                      <td className="px-4 py-4 text-slate-500 font-mono text-xs">{row.loanRef}</td>
-                      <td className="px-4 py-4 text-center">{ratingBadge(row.rating)}</td>
-                      <td className="px-4 py-4 text-right font-medium">{row.ead.toLocaleString()}</td>
-                      <td className="px-4 py-4">
-                        {row.omega !== null ? regimeBadge(row.omega) : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-4 py-4 text-right font-mono text-xs">
-                        {row.pd1Q !== null ? `${(row.pd1Q * 100).toFixed(1)}%` : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-4 py-4 text-right font-medium">
-                        {row.ecl1Year !== null ? `$${row.ecl1Year.toFixed(2)}` : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-4 py-4">
-                        <Badge variant="outline" className="text-xs font-mono">
-                          {row.stage.replace("_", " ")}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-4">
-                        <Link href={`/admin/borrowers/${row.borrowerId}`}>
-                          <Button variant="ghost" size="sm" className="text-slate-400 hover:text-emerald-700 hover:bg-emerald-50">
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
+                  {borrowers.map((b) => {
+                    const analysis = b.fields[0]?.analyses[0] ?? null;
+                    const spei = analysis ? speiLabel(analysis.gamma) : null;
+                    return (
+                      <tr key={b.id} className="border-b border-slate-50 hover:bg-emerald-50/40 transition-colors">
+                        <td className="px-6 py-4 font-semibold text-slate-900">{b.name}</td>
+                        <td className="px-4 py-4 text-slate-500">{b.district ?? "—"}</td>
+                        <td className="px-4 py-4 text-slate-500 text-xs">{b.primaryActivity ?? "—"}</td>
+                        <td className="px-4 py-4">
+                          {b.fields.length > 0 ? (
+                            <Badge className="bg-emerald-100 text-emerald-700 border-none text-xs">
+                              <Activity className="h-3 w-3 mr-1" /> {b.fields[0].name}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-300 text-xs">No field</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4">
+                          {analysis ? (
+                            <span className={`font-mono text-sm font-semibold ${analysis.gamma < -1 ? "text-red-600" : analysis.gamma < 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                              {analysis.gamma.toFixed(2)}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4">
+                          {spei ? (
+                            <Badge className={`${spei.color} border-none text-xs`}>
+                              <CloudSun className="h-3 w-3 mr-1" /> {spei.label}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-300 text-xs">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 text-xs text-slate-500">
+                          {analysis ? new Date(analysis.createdAt).toLocaleDateString() : "—"}
+                        </td>
+                        <td className="px-4 py-4">
+                          <Link href={`/admin/borrowers/${b.id}`}>
+                            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-emerald-700 hover:bg-emerald-50">
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
