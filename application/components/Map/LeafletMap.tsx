@@ -48,6 +48,20 @@ function GoToLocationHandler({ location }: { location: { lat: number; lng: numbe
   return null;
 }
 
+function FitBoundsToGeoJSON({ data }: { data: any }) {
+  const map = useMap();
+  useEffect(() => {
+    try {
+      const layer = L.geoJSON(data);
+      const bounds = layer.getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [30, 30] });
+      }
+    } catch { /* ignore invalid polygon data */ }
+  }, [map, data]);
+  return null;
+}
+
 export default function LeafletMap({ 
   initialViewState, 
   polygon, 
@@ -135,15 +149,18 @@ export default function LeafletMap({
         )}
 
         {polygon && !editable && (
-          <GeoJSON 
-            data={polygon}
-            style={{
-              color: '#10b981',
-              weight: 2,
-              fillColor: '#10b981',
-              fillOpacity: 0.4,
-            }}
-          />
+          <>
+            <GeoJSON
+              data={polygon}
+              style={{
+                color: '#10b981',
+                weight: 2,
+                fillColor: '#10b981',
+                fillOpacity: 0.4,
+              }}
+            />
+            <FitBoundsToGeoJSON data={polygon} />
+          </>
         )}
 
         {children}

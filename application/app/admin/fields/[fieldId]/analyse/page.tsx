@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { LogoutButton } from "@/components/LogoutButton";
 import {
   ArrowLeft, Leaf, Activity, TrendingDown,
-  Droplets, Thermometer, BarChart3, AlertTriangle,
+  Droplets, Thermometer, BarChart3, AlertTriangle, MapPin,
 } from "lucide-react";
+import FieldMapClient from "@/components/Map/FieldMapClient";
 
 function scoreBadge(score: number) {
   if (score >= 65) return <Badge className="bg-emerald-100 text-emerald-700 border-none">Healthy ({score}/100)</Badge>;
@@ -80,6 +81,22 @@ export default async function FieldViewPage({
       </nav>
 
       <main className="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full space-y-6">
+        {/* Field map — always visible */}
+        {field.polygon && (
+          <Card className="border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-emerald-600" /> Field Location
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 overflow-hidden rounded-b-xl">
+              <div className="h-80">
+                <FieldMapClient polygonString={field.polygon} />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {!analysis ? (
           <div className="flex flex-col items-center justify-center py-32 text-slate-500 bg-white rounded-2xl border border-dashed border-slate-200">
             <Activity className="h-12 w-12 text-slate-300 mb-4" />

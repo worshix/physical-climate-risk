@@ -310,7 +310,7 @@ export default function BorrowerFieldPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 overflow-hidden rounded-b-xl">
-                  <div className="h-64">
+                  <div className="h-80">
                     <FieldMap
                       polygon={polygon}
                       editable={false}
