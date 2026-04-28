@@ -67,6 +67,7 @@ export async function POST(_req: Request, { params }: Params) {
       avgTemp: satData.avg_temperature_c,
       totalRainfall: satData.total_rainfall_mm,
       ndviVariance: satData.ndvi_variance,
+      gamma,
     });
 
     // ── Persist Analysis ────────────────────────────────────────────────
