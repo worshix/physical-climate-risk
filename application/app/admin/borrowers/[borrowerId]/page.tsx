@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LogoutButton } from "@/components/LogoutButton";
+import { LoanManager } from "@/components/admin/LoanManager";
+import type { LoanData } from "@/components/admin/LoanManager";
 import {
   ArrowLeft, Leaf, User, MapPin, Phone,
   Activity, FileText, ExternalLink, Briefcase, CreditCard,
@@ -30,6 +32,13 @@ export default async function BorrowerDetailPage({
         },
         orderBy: { createdAt: "desc" },
       },
+      loans: {
+        include: {
+          observations: { orderBy: { obsDate: "asc" } },
+          eclForecasts: { orderBy: { computedAt: "desc" }, take: 5 },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
@@ -37,6 +46,44 @@ export default async function BorrowerDetailPage({
 
   const latestField    = borrower.fields[0] ?? null;
   const latestAnalysis = latestField?.analyses[0] ?? null;
+  const latestGamma    = latestAnalysis?.gamma ?? null;
+
+  // Serialise loans for the client component (dates → strings)
+  const loansForClient: LoanData[] = borrower.loans.map((l) => ({
+    id: l.id,
+    loanRef: l.loanRef,
+    currentRating: l.currentRating,
+    loanAmount: l.loanAmount,
+    disbursementDate: l.disbursementDate.toISOString(),
+    stage: l.stage,
+    status: l.status,
+    createdAt: l.createdAt.toISOString(),
+    observations: l.observations.map((o) => ({
+      id: o.id,
+      obsPeriod: o.obsPeriod,
+      obsDate: o.obsDate.toISOString(),
+      rating: o.rating,
+      defaultFlag: o.defaultFlag,
+      gamma: o.gamma,
+      loanAmount: o.loanAmount,
+    })),
+    eclForecasts: l.eclForecasts.map((e) => ({
+      id: e.id,
+      computedAt: e.computedAt.toISOString(),
+      currentGamma: e.currentGamma,
+      regimeWeight: e.regimeWeight,
+      onePeriodPD: e.onePeriodPD,
+      ecl1Year: e.ecl1Year,
+      ecl5Year: e.ecl5Year,
+      eclExpected: e.eclExpected,
+      eclBaseline: e.eclBaseline,
+      eclModerateDrought: e.eclModerateDrought,
+      eclSevereDrought: e.eclSevereDrought,
+      eclWetRecovery: e.eclWetRecovery,
+      lgd: e.lgd,
+      discountRate: e.discountRate,
+    })),
+  }));
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -176,7 +223,7 @@ export default async function BorrowerDetailPage({
                   </p>
                   <Link href={`/admin/fields/${latestField.id}/analyse`} className="block pt-1">
                     <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs">
-                      <ExternalLink className="h-3.5 w-3.5" /> View Full Field Details & Recommendations
+                      <ExternalLink className="h-3.5 w-3.5" /> View Full Field Details &amp; Recommendations
                     </Button>
                   </Link>
                 </>
@@ -192,6 +239,13 @@ export default async function BorrowerDetailPage({
             </CardContent>
           </Card>
         </div>
+
+        {/* ── Loans & Credit Risk ── */}
+        <LoanManager
+          borrowerId={borrowerId}
+          initialLoans={loansForClient}
+          latestGamma={latestGamma}
+        />
 
         {/* ── Registered Fields ── */}
         {borrower.fields.length > 0 && (
