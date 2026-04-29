@@ -78,7 +78,7 @@ export default function LoginPage() {
             {[
               { icon: Shield,    text: "IFRS 9 compliant ECL framework" },
               { icon: BarChart3, text: "Four-scenario drought stress testing" },
-              { icon: Satellite, text: "SPEI-3 satellite drought index" },
+              { icon: Satellite, text: "SPEI-12 satellite drought index" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-3 text-emerald-100 text-sm">
                 <div className="p-1.5 bg-white/15 rounded-md shrink-0">

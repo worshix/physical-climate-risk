@@ -203,7 +203,7 @@ export default async function FieldViewPage({
               <Card className="border-slate-200">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <BarChart3 className="h-3.5 w-3.5" /> SPEI-3 (γ)
+                    <BarChart3 className="h-3.5 w-3.5" /> SPEI-12 (γ)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

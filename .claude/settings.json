@@ -27,7 +27,8 @@
     ],
     "additionalDirectories": [
       "/home/worshix/school-projects/physical-climate-risk/application/app/api/admin/fields/[fieldId]/analyse",
-      "/home/worshix/school-projects/physical-climate-risk/application/app/api/admin/loans/[loanId]"
+      "/home/worshix/school-projects/physical-climate-risk/application/app/api/admin/loans/[loanId]",
+      "/home/worshix/school-projects/physical-climate-risk/application/app/admin/fields/[fieldId]/analyse"
     ]
   }
 }

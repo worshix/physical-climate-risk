@@ -4,7 +4,7 @@
  * Provides:
  *  - NDVI estimation from geolocation-based heuristics (Sentinel Hub not required)
  *  - 14-day weather data from Open-Meteo forecast API
- *  - SPEI-3 drought index from Open-Meteo historical archive (Thornthwaite PET method)
+ *  - SPEI-12 drought index from Open-Meteo historical archive (Thornthwaite PET method)
  */
 
 import { extractCoordinates, getPolygonCentroid } from '@/lib/geo/utils';
@@ -16,7 +16,7 @@ export interface SatelliteData {
   ndvi_variance: number;
   avg_temperature_c: number;
   total_rainfall_mm: number;
-  /** SPEI-3 value (γ). Negative = drought, positive = wet. */
+  /** SPEI-12 value (γ). Negative = drought, positive = wet. */
   spei: number;
   /** Human-readable SPEI label (e.g. "Moderately Dry"). */
   spei_label: string;
@@ -124,11 +124,15 @@ export async function getSatelliteData(polygon: unknown): Promise<SatelliteData>
       ? 'tropical'
       : 'temperate';
 
-  // Fetch NDVI, weather, and SPEI in parallel
+  // Fetch NDVI, weather, and SPEI in parallel.
+  // SPEI-12 is used for γ (ECL input): it covers a full hydrological year and
+  // is standardised per calendar month, removing seasonal bias. SPEI-12 would
+  // produce artificially wet readings at the end of the rainy season and
+  // artificially dry readings at the end of the dry season.
   const [ndviData, weatherData, speiResult] = await Promise.all([
     fetchNDVIData(coordinates),
     fetchWeatherData(centroid.lat, centroid.lng),
-    computeSPEI(centroid.lat, centroid.lng).catch((err: unknown) => {
+    computeSPEI(centroid.lat, centroid.lng, 12).catch((err: unknown) => {
       console.error('SPEI computation failed, will fall back to proxy:', err);
       return null;
     }),
@@ -143,7 +147,7 @@ export async function getSatelliteData(polygon: unknown): Promise<SatelliteData>
     spei: speiResult?.spei ?? 0,
     spei_label: speiResult?.label ?? 'Data unavailable',
     spei_result: speiResult,
-    data_source: 'Open-Meteo (weather + SPEI-3 archive) + Geolocation NDVI',
+    data_source: 'Open-Meteo (weather + SPEI-12 archive) + Geolocation NDVI',
     region_type: regionType,
     observation_date: new Date().toISOString().split('T')[0],
   };

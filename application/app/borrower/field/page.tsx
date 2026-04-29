@@ -199,7 +199,7 @@ export default function BorrowerFieldPage() {
             <Card className="border-slate-200 md:col-span-2">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <CloudSun className="h-4 w-4 text-emerald-600" /> Drought Index (SPEI-3)
+                  <CloudSun className="h-4 w-4 text-emerald-600" /> Drought Index (SPEI-12)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -222,7 +222,7 @@ export default function BorrowerFieldPage() {
                       <Metric icon={<Activity className="h-3.5 w-3.5 text-emerald-500" />} label="NDVI" value={analysis.meanNDVI.toFixed(3)} sub={analysis.ndviTrend} />
                       <Metric icon={<Droplets className="h-3.5 w-3.5 text-blue-500" />} label="14-day Rainfall" value={`${analysis.totalRainfall.toFixed(0)} mm`} sub={analysis.waterStressRisk ? "⚠ Low moisture" : "Normal"} />
                       <Metric icon={<Thermometer className="h-3.5 w-3.5 text-orange-500" />} label="Temperature" value={`${analysis.avgTemperature.toFixed(1)} °C`} sub={analysis.diseaseRisk ? "⚠ Heat risk" : "Normal"} />
-                      <Metric icon={<CloudSun className="h-3.5 w-3.5 text-slate-500" />} label="Data source" value="SPEI-3" sub="Open-Meteo archive" />
+                      <Metric icon={<CloudSun className="h-3.5 w-3.5 text-slate-500" />} label="Data source" value="SPEI-12" sub="Open-Meteo archive" />
                     </div>
                     <p className="text-xs text-slate-400">
                       Last analysed {new Date(analysis.createdAt).toLocaleString()}.

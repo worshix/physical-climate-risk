@@ -69,7 +69,7 @@ export default function LandingPage() {
           <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
               { value: "IFRS 9",      label: "Compliant Framework", color: "text-emerald-400" },
-              { value: "SPEI-3",      label: "Drought Index Signal", color: "text-blue-400" },
+              { value: "SPEI-12",      label: "Drought Index Signal", color: "text-blue-400" },
               { value: "45%",         label: "LGD Parameter",        color: "text-amber-400" },
               { value: "4 Scenarios", label: "ECL Forecasting",      color: "text-violet-400" },
             ].map(({ value, label, color }) => (

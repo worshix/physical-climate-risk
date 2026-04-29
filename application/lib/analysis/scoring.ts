@@ -2,7 +2,7 @@
  * Agricultural Scoring + γ (SPEI) Derivation
  *
  * Computes:
- *   1. γ — the drought index. Taken directly from SPEI-3 when available (preferred);
+ *   1. γ — the drought index. Taken directly from SPEI-12 when available (preferred);
  *          falls back to a rainfall+NDVI proxy when SPEI is unavailable.
  *   2. ω(γ) — logistic regime weight: probability of operating in drought-stress regime.
  *   3. Agricultural Score (0–100) — field-level health from NDVI + weather signals.
@@ -42,7 +42,7 @@ export function computeRegimeWeight(gamma: number): number {
 /**
  * Derive γ (drought index) from satellite data.
  *
- * Primary:  Use SPEI-3 directly from Open-Meteo archive if available.
+ * Primary:  Use SPEI-12 directly from Open-Meteo archive if available.
  *           SPEI is the authentic drought index used in the research paper.
  *
  * Fallback: When SPEI is unavailable (API error, insufficient history),
@@ -52,7 +52,7 @@ export function computeRegimeWeight(gamma: number): number {
  * @returns  γ ∈ [−3, +3]  (negative = drought, positive = wet)
  */
 export function computeGamma(data: SatelliteData): number {
-  // Use real SPEI-3 when it has been successfully computed
+  // Use real SPEI-12 when it has been successfully computed
   if (data.spei_result !== null && data.spei !== 0) {
     return Math.max(-3, Math.min(3, data.spei));
   }

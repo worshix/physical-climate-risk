@@ -430,7 +430,7 @@ export default async function PortfolioPage() {
                   <div className="p-1.5 bg-blue-100 rounded-md">
                     <CloudSun className="h-3 w-3 text-blue-600" />
                   </div>
-                  Avg SPEI-3
+                  Avg SPEI-12
                 </CardTitle>
               </CardHeader>
               <CardContent className="pb-5">
@@ -483,7 +483,7 @@ export default async function PortfolioPage() {
                   <div className="p-1.5 bg-blue-100 rounded-md">
                     <CloudSun className="h-3.5 w-3.5 text-blue-600" />
                   </div>
-                  SPEI-3 Drought Regime Distribution
+                  SPEI-12 Drought Regime Distribution
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -555,7 +555,7 @@ export default async function PortfolioPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100">
-                      {["Borrower", "District", "Field", "SPEI-3 (γ)", "Climate Status", "NDVI", "Rainfall (14d)", "Temp (°C)", "Flags", ""].map((h) => (
+                      {["Borrower", "District", "Field", "SPEI-12 (γ)", "Climate Status", "NDVI", "Rainfall (14d)", "Temp (°C)", "Flags", ""].map((h) => (
                         <th key={h} className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider text-left first:pl-6">{h}</th>
                       ))}
                     </tr>

@@ -152,7 +152,7 @@ export default async function BorrowerReportPage() {
                 <Badge className={`${climate.color} border-none text-sm px-3 py-1`}>{climate.label}</Badge>
                 {analysis && (
                   <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-1">
-                    <RowItem label="SPEI-3 Drought Index" value={analysis.gamma.toFixed(2)} mono />
+                    <RowItem label="SPEI-12 Drought Index" value={analysis.gamma.toFixed(2)} mono />
                     <RowItem label="14-Day Rainfall"      value={`${analysis.totalRainfall.toFixed(1)} mm`} />
                     <RowItem label="Avg Temperature"      value={`${analysis.avgTemperature.toFixed(1)} °C`} />
                   </div>

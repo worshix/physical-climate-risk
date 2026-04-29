@@ -189,7 +189,7 @@ export default async function BorrowerDetailPage({
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">SPEI-3 (γ)</span>
+                    <span className="text-xs text-slate-400">SPEI-12 (γ)</span>
                     <span className={`font-mono text-sm font-semibold ${latestAnalysis.gamma < -1 ? "text-red-600" : latestAnalysis.gamma < 0 ? "text-amber-600" : "text-emerald-600"}`}>
                       {latestAnalysis.gamma.toFixed(2)}
                     </span>
