@@ -23,7 +23,8 @@
       "Bash(pkill -f \"next dev\")",
       "Bash(node -e \"const { Satellite } = require\\('/home/worshix/school-projects/physical-climate-risk/application/node_modules/lucide-react'\\); console.log\\(typeof Satellite\\);\")",
       "Bash(node -e ' *)",
-      "Bash(DATABASE_URL=\"file:./dev.db\" pnpm tsx /tmp/clear_borrowers.ts)"
+      "Bash(DATABASE_URL=\"file:./dev.db\" pnpm tsx /tmp/clear_borrowers.ts)",
+      "Bash(pnpm tsx *)"
     ],
     "additionalDirectories": [
       "/home/worshix/school-projects/physical-climate-risk/application/app/api/admin/fields/[fieldId]/analyse",

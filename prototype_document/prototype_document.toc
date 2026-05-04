@@ -1,0 +1,27 @@
+\contentsline {section}{Title Page}{i}{section*.1}%
+\contentsline {section}{Declaration}{ii}{section*.2}%
+\contentsline {section}{Copyright}{iii}{section*.3}%
+\contentsline {section}{Dedication}{iv}{section*.4}%
+\contentsline {section}{Acknowledgements}{v}{section*.5}%
+\contentsline {section}{Abstract}{x}{section*.6}%
+\contentsline {section}{Abbreviation}{xi}{section*.7}%
+\contentsline {section}{Chapter 1: Introduction}{1}{section*.8}%
+\contentsline {section}{\numberline {1.1}Problem Statement}{1}{section.1}%
+\contentsline {section}{\numberline {1.2}System Objectives}{1}{section.2}%
+\contentsline {section}{Chapter 2: Process Modelling}{3}{section*.9}%
+\contentsline {section}{\numberline {2.1}Introduction}{3}{section.1}%
+\contentsline {section}{\numberline {2.2}Process Model (Iterative)}{3}{section.2}%
+\contentsline {section}{\numberline {2.3}Feasibility Analysis}{4}{section.3}%
+\contentsline {section}{\numberline {2.4}System Security}{4}{section.4}%
+\contentsline {section}{Chapter 3: Software Methodology}{6}{section*.11}%
+\contentsline {section}{\numberline {3.1}Introduction}{6}{section.1}%
+\contentsline {section}{\numberline {3.2}System Flowchart}{6}{section.2}%
+\contentsline {section}{\numberline {3.3}System Description}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.3.1}Step-1: Login}{7}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Landing Page}{8}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}Admin Dashboard}{9}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.3.4}Register Borrower}{10}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.3.5}Borrower Detail and Field Analysis}{11}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.3.6}Portfolio Analysis}{12}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.3.7}Borrower Dashboard}{13}{subsection.3.7}%
+\contentsline {section}{Appendix: System Code}{14}{section*.20}%
